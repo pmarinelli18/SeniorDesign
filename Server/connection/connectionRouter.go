@@ -2,21 +2,35 @@ package connection
 import (
 	"fmt"
 	"strings"
+	"net/url"
 )
 
+/*
+Messages are parsed like a URL, with a body and optional parameters
+Examples of URLs are: 		msg?content=This is the message to print
+					   		login?userName=MyName&password=12342
+							triggerHardware/radarEffect	
+*/
 
 func RouteRecievedMessage(user *User, messageContent string){
 
-	info := strings.Split(messageContent, ":")
+	urlRequest, err := url.Parse(messageContent)
+	if err != nil {
+        panic(err)
+    }
+    path := urlRequest.Path
+    splitPath := strings.Split(path, "/")
+	
+	parameters, _ := url.ParseQuery(urlRequest.RawQuery)
 
-	if len(info) >= 2 {
-		if info[0] == "msg"{
+
+	if len(splitPath) != 0 {
+		if splitPath[0] == "msg"{
 			fmt.Println("Display message")
-			fmt.Println(user.Username + ": " + info[1])
-
-		} else if info[0] == "login" && len(info) == 3 {
+			fmt.Println(user.Username + ": " + parameters["string"][0])
+		} else if splitPath[0] == "login" {
 			fmt.Println("Login")
-			fmt.Println("Username: " + info[1] + ", Password: " + info[2])
+			CheckIfValidLogin("userName", "password")
 		}
 	}
 }

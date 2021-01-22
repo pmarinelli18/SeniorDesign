@@ -5,6 +5,7 @@ import (
 
 func main() {
 	//Create addr
+	Connection.MakeDatabaseConnection()
 	Connection.ListenForNewConnections()
 
 	return
