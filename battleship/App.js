@@ -1,56 +1,69 @@
-import React, { PureComponent } from "react";
-import { StyleSheet, Text, View, AppRegistry, StatusBar } from "react-native";
-import { registerRootComponent } from "expo";
-import { Finger } from "./renderers";
-import { GameEngine } from "react-native-game-engine";
-// import Game from "./game";
-export default class BestGameEver extends PureComponent {
-	constructor() {
-		super();
-	}
-
-	render() {
-		return (
-			<GameEngine
-				style={{ backgroundColor: "black" }}
-				entities={{
-					1: { position: [40, 200], renderer: <Finger /> },
-					2: { position: [100, 200], renderer: <Finger /> },
-					3: { position: [160, 200], renderer: <Finger /> },
-					4: { position: [220, 200], renderer: <Finger /> },
-					5: { position: [280, 200], renderer: <Finger /> },
-				}}
-			>
-				<Text style={[styles.setFontSize, styles.setColorRed]}>Hi</Text>
-				<StatusBar hidden={true} />
-			</GameEngine>
-		);
-	}
-}
+import React from "react";
+import { Platform, StyleSheet, Text } from "react-native";
+// import { StackViewStyleInterpolator } from "react-navigation-stack"
+import {
+	Scene,
+	Router,
+	Actions,
+	ActionConst,
+	Overlay,
+	Tabs,
+	Modal,
+	Drawer,
+	Stack,
+	Lightbox,
+} from "react-native-router-flux";
+// import Home from "./Views/Home";
+import Start from "./Views/Start/Start";
+import Login from "./Views/Login/Login";
+import Home from "./Views/Home/Home";
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		backgroundColor: "#FFF",
+		backgroundColor: "transparent",
+		justifyContent: "center",
+		alignItems: "center",
+	},
+	scene: {
+		backgroundColor: "#F5FCFF",
+		shadowOpacity: 1,
+		shadowRadius: 3,
+	},
+	tabBarStyle: {
+		backgroundColor: "#eee",
+	},
+	tabBarSelectedItemStyle: {
+		backgroundColor: "#ddd",
 	},
 });
 
-AppRegistry.registerComponent("BestGameEver", () => BestGameEver);
+const stateHandler = (prevState, newState, action) => {
+	console.log("onStateChange: ACTION:", action);
+};
 
-// export default function App() {
-//   return (
-//     <View style={styles.container}>
-//       <Text>Open up App.js to start working on your app!</Text>
-//       <StatusBar style="auto" />
-//     </View>
-//   );
-// }
+// on Android, the URI prefix typically contains a host in addition to scheme
+const prefix = Platform.OS === "android" ? "mychat://mychat/" : "mychat://";
 
-// const styles = StyleSheet.create({
-// 	container: {
-// 		flex: 1,
-// 		backgroundColor: "#fff",
-// 		alignItems: "center",
-// 		justifyContent: "center",
-// 	},
+// const transitionConfig = () => ({
+// 	screenInterpolator: StackViewStyleInterpolator.forFadeFromBottomAndroid,
 // });
+
+const App = () => (
+	<Router
+		onStateChange={stateHandler}
+		sceneStyle={styles.scene}
+		uriPrefix={prefix}
+	>
+		<Overlay key="overlay">
+			<Modal key="modal" hideNavBar>
+				<Stack key="root" titleStyle={{ alignSelf: "center" }} hideNavBar>
+					<Scene key="_start" component={Start} title="Start" />
+				</Stack>
+				<Scene key="_login" component={Login} title="Login" />
+				<Scene key="_Home" component={Home} title="Home" />
+			</Modal>
+		</Overlay>
+	</Router>
+);
+export default App;
