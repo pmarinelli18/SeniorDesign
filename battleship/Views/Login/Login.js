@@ -1,12 +1,20 @@
 import React, { useEffect, useState, PureComponent } from "react";
-import { Text, StyleSheet, AppRegistry } from "react-native";
+import { StyleSheet, AppRegistry, View } from "react-native";
+import { Container, Header, Content, Button, Text } from "native-base";
+import { Actions } from "react-native-router-flux";
 export default class Login extends PureComponent {
 	constructor() {
 		super();
 	}
 
 	render() {
-		return <Text> Hi</Text>;
+		return (
+			<View {...this.props} style={styles.container}>
+				<Button onPress={() => Actions._start()}>
+					<Text>Test</Text>
+				</Button>
+			</View>
+		);
 	}
 }
 

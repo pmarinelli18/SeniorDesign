@@ -57,11 +57,9 @@ const App = () => (
 	>
 		<Overlay key="overlay">
 			<Modal key="modal" hideNavBar>
-				<Stack key="root" titleStyle={{ alignSelf: "center" }} hideNavBar>
-					<Scene key="_start" component={Start} title="Start" />
-				</Stack>
+				<Scene key="_start" component={Start} title="Start" />
 				<Scene key="_login" component={Login} title="Login" />
-				<Scene key="_Home" component={Home} title="Home" />
+				<Scene key="_home" component={Home} title="Home" />
 			</Modal>
 		</Overlay>
 	</Router>

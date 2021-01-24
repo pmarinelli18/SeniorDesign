@@ -19,7 +19,7 @@ export default class Start extends PureComponent {
 	render() {
 		return (
 			<View {...this.props} style={styles.container}>
-				<Button onPress={() => Actions._Home()}>Test</Button>
+				<Button onPress={() => Actions._login()}>Log in</Button>
 			</View>
 		);
 	}
