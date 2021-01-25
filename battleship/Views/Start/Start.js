@@ -1,6 +1,6 @@
 import React, { useEffect, useState, PureComponent } from "react";
-import { Text, StyleSheet, AppRegistry, View } from "react-native";
-import Button from "react-native-button";
+import { StyleSheet, AppRegistry, View } from "react-native";
+import { Container, Header, Content, Button, Text } from "native-base";
 import { Actions } from "react-native-router-flux";
 
 const styles = StyleSheet.create({
@@ -19,7 +19,9 @@ export default class Start extends PureComponent {
 	render() {
 		return (
 			<View {...this.props} style={styles.container}>
-				<Button onPress={() => Actions._login()}>Log in</Button>
+				<Button onPress={() => Actions._login()}>
+					<Text>Log in</Text>
+				</Button>
 			</View>
 		);
 	}
