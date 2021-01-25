@@ -37,8 +37,7 @@ type User struct {
 	Username string
 }
 
-//New ...
-func (c *AllConnections) New(key string, conn *net.TCPConn) bool {
+func (c *AllConnections) createNewConnection(key string, conn *net.TCPConn) bool {
 	c.Lock()
 	defer c.Unlock()
 
@@ -50,12 +49,12 @@ func (c *AllConnections) New(key string, conn *net.TCPConn) bool {
 }
 
 //Delete ...
-func (c *AllConnections) Delete(key string) bool {
+func (c *AllConnections) deleteConnection(withID string) bool {
 	c.Lock()
 	defer c.Unlock()
 
-	if _, ok := c.connections[key]; ok {
-		delete(c.connections, key)
+	if _, ok := c.connections[withID]; ok {
+		delete(c.connections, withID)
 		return true
 	}
 	return false
@@ -83,7 +82,7 @@ func ListenForNewConnections() {
 	handleError(err)
 	defer tcpListener.Close()
 
-	//Create broadcaster
+	//Create broadcaster - might get rid of this section
 	var broadcaster = make(chan *Message, 1)
 	defer close(broadcaster)
 	c := &AllConnections{ connections: make(map[string]*net.TCPConn) }
@@ -91,63 +90,18 @@ func ListenForNewConnections() {
 
 	fmt.Println("Listening on " + CHOST + ":" + CPORT)
 	for {
-				// Listen for an incoming connection.
-		conn, err := tcpListener.AcceptTCP()
+		// Listen for an incoming connection.
+		newConnection, err := tcpListener.AcceptTCP()
 		handleError(err)
-		c.New(conn.RemoteAddr().String(), conn)
-
+		//newConnection.RemoteAddr().String() is the IP address of the newly connected device. It will be used 
+		//to identify the device
+		c.createNewConnection(newConnection.RemoteAddr().String(), newConnection)
+		
 		// Handle connections in a new goroutine.
-		go handleRequest(conn, broadcaster)
+		go handleRequest(newConnection, broadcaster)
 		fmt.Println("Handel connection!")
-
 	}
-
 	return
-}
-
-func (c *AllConnections) broadcast(messages chan *Message) {
-	//Loop continually sending messages
-	for {
-		msg := <-messages
-		//If user left, remove from conn pool
-		if msg.isLast {
-		  	c.Delete(msg.conn.RemoteAddr().String())
-	  		//continue
-		}
-
-		for _, conn := range c.connections {
-			//Write user message to group
-	  		fmt.Println(msg.msg + "\n")
-			_, err := conn.Write([]byte(msg.msg))
-			if err != nil {
-				c.Delete(msg.conn.RemoteAddr().String())
-			}
-		}
-	}
-}
-
-func initUser(conn *net.TCPConn) *User {
-	//Read data from connection
-	buf := make([]byte, 2048)
-	_, err := conn.Read(buf)
-	if err != nil {
-		fmt.Println("Error reading:", err.Error())
-		return nil
-	}
-
-  buf = bytes.Trim(buf, "\x00")
-
-	data := string(buf)
-	if data == "" {
-		return nil
-	}
-
-	info := strings.Split(data, ":")
-	if len(info) < 2 || info[0] != "iam" {
-		return nil
-	}
-
-	return &User{Username: info[1]}
 }
 
 func handleRequest(conn *net.TCPConn, messages chan *Message) {
@@ -190,3 +144,50 @@ func handleError(err error) {
 		os.Exit(1)
 	}
 }
+
+func (c *AllConnections) broadcast(messages chan *Message) {
+	//Loop continually sending messages
+	for {
+		msg := <-messages
+		//If user left, remove from conn pool
+		if msg.isLast {
+		  	c.deleteConnection(msg.conn.RemoteAddr().String())
+	  		//continue
+		}
+
+		for _, conn := range c.connections {
+			//Write user message to group
+	  		fmt.Println(msg.msg + "\n")
+			_, err := conn.Write([]byte(msg.msg))
+			if err != nil {
+				c.deleteConnection(msg.conn.RemoteAddr().String())
+			}
+		}
+	}
+}
+
+func initUser(conn *net.TCPConn) *User {
+	//Read data from connection
+	buf := make([]byte, 2048)
+	_, err := conn.Read(buf)
+	if err != nil {
+		fmt.Println("Error reading:", err.Error())
+		return nil
+	}
+
+  buf = bytes.Trim(buf, "\x00")
+
+	data := string(buf)
+	if data == "" {
+		return nil
+	}
+
+	info := strings.Split(data, ":")
+	if len(info) < 2 || info[0] != "iam" {
+		return nil
+	}
+
+	return &User{Username: info[1]}
+}
+
+
