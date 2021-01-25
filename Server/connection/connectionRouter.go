@@ -3,6 +3,7 @@ import (
 	"fmt"
 	"strings"
 	"net/url"
+	"net"
 )
 
 /*
@@ -12,7 +13,7 @@ Examples of URLs are: 		msg?content=This is the message to print
 							triggerHardware/radarEffect	
 */
 
-func RouteRecievedMessage(user *User, messageContent string){
+func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 
 	urlRequest, err := url.Parse(messageContent)
 	if err != nil {
@@ -27,14 +28,37 @@ func RouteRecievedMessage(user *User, messageContent string){
 	if len(splitPath) != 0 {
 		if splitPath[0] == "msg"{
 			fmt.Println("Display message")
-			fmt.Println(user.Username + ": " + parameters["string"][0])
+			fmt.Println(connection.RemoteAddr().String() + ": " + parameters["string"][0])
+			resondBack(connection, true)
 		} else if splitPath[0] == "login" {
 			fmt.Println("Login")
 			CheckIfValidLogin("userName", "password")
+			resondBack(connection, true)
+		} else if splitPath[0] == "echo"{
+			fmt.Println("Echo message to all")
+			SendMessageToAll(parameters["string"][0])
+			resondBack(connection, true)
+		} else{
+			resondBack(connection, false)
 		}
+	} else{
+		resondBack(connection, false)
 	}
 }
 
-func SendMessageToAllConnections(){
+
+func resondBack(connection *net.TCPConn, success bool){
+	message := "Failed"
+	if success {
+		message = "Success"
+	}
+	_, err := connection.Write([]byte(message))
+	if err != nil {
+		DeleteConnection(connection.RemoteAddr().String())
+	}
+}
+
+
+func sendMessageToAllConnections(){
 
 }

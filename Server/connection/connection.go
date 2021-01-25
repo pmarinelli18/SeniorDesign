@@ -5,26 +5,19 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"sync"
   	"bytes"
 )
 
-//UGHHHHH ...
 var (
 	CHOST = "10.20.0.197"
 	CPORT = "82"
 	CNET  = "tcp"
 )
 
-//MSG is used in transporting individual messages
-type Message struct {
-	username string
-	msg      string
-	isLast   bool
+var allConnections = &AllConnections{ connections: make(map[string]*net.TCPConn) }
 
-	conn *net.TCPConn
-}
+
 
 //Conns contains all connections
 type AllConnections struct {
@@ -32,44 +25,38 @@ type AllConnections struct {
 	sync.RWMutex
 }
 
-//User contains username
-type User struct {
-	Username string
-}
 
-func (c *AllConnections) createNewConnection(key string, conn *net.TCPConn) bool {
-	c.Lock()
-	defer c.Unlock()
+func createNewConnection(key string, conn *net.TCPConn) bool {
+	allConnections.Lock()
+	defer allConnections.Unlock()
 
-	if _, ok := c.connections[key]; !ok {
-		c.connections[key] = conn
+	if _, ok := allConnections.connections[key]; !ok {
+		allConnections.connections[key] = conn
 		return true
 	}
 	return false
 }
 
 //Delete ...
-func (c *AllConnections) deleteConnection(withID string) bool {
-	c.Lock()
-	defer c.Unlock()
+func DeleteConnection(withID string) bool {
+	allConnections.Lock()
+	defer allConnections.Unlock()
 
-	if _, ok := c.connections[withID]; ok {
-		delete(c.connections, withID)
+	if _, ok := allConnections.connections[withID]; ok {
+		delete(allConnections.connections, withID)
 		return true
 	}
 	return false
 }
 
-//Read ...
-func (c *AllConnections) Read(key string) *net.TCPConn {
-	c.RLock()
-	defer c.RUnlock()
-
-	if conn, ok := c.connections[key]; ok {
-		return conn
+func SendMessageToAll(message string){
+	for _, conn := range allConnections.connections {
+		//Write user message to group
+		_, err := conn.Write([]byte(message))
+		if err != nil {
+			DeleteConnection(conn.RemoteAddr().String())
+		}
 	}
-
-	return nil
 }
 
 func ListenForNewConnections() {
@@ -82,50 +69,35 @@ func ListenForNewConnections() {
 	handleError(err)
 	defer tcpListener.Close()
 
-	//Create broadcaster - might get rid of this section
-	var broadcaster = make(chan *Message, 1)
-	defer close(broadcaster)
-	c := &AllConnections{ connections: make(map[string]*net.TCPConn) }
-	go c.broadcast(broadcaster)
-
 	fmt.Println("Listening on " + CHOST + ":" + CPORT)
 	for {
 		// Listen for an incoming connection.
 		newConnection, err := tcpListener.AcceptTCP()
 		handleError(err)
+		
 		//newConnection.RemoteAddr().String() is the IP address of the newly connected device. It will be used 
 		//to identify the device
-		c.createNewConnection(newConnection.RemoteAddr().String(), newConnection)
+		createNewConnection(newConnection.RemoteAddr().String(), newConnection)
 		
 		// Handle connections in a new goroutine.
-		go handleRequest(newConnection, broadcaster)
-		fmt.Println("Handel connection!")
+		go handleRequest(newConnection)
 	}
 	return
 }
 
-func handleRequest(conn *net.TCPConn, messages chan *Message) {
-	defer conn.Close()
-
-	//First, get th euser name from the user. Client MUST first send an iam signal
-	user := initUser(conn)
-	if user == nil {
-		return
-	}
-	fmt.Println(user.Username, " has joined\n")
+func handleRequest(connection *net.TCPConn) {
+	defer connection.Close()
+	fmt.Println(connection.RemoteAddr().String(), " has connected")
 
 	for {
 		//Now it loops forver as it waits to reveive messages from that client
-
 		buf := make([]byte, 2048)
 		//Waits here until it recieves a message
-		_, err := conn.Read(buf)
+		_, err := connection.Read(buf)
 		if err != nil {
 			fmt.Println("Error reading:", err.Error())
-			//Remove connection from list
-			//Client closed, alert other users
-	 		msg := &Message{ username: user.Username, msg: "Disconnected!", conn: conn, isLast: true }
-			messages <- msg
+			fmt.Println(connection.RemoteAddr().String(), " has disconnected")
+			DeleteConnection(connection.RemoteAddr().String())
 			return
 		}
 
@@ -133,7 +105,7 @@ func handleRequest(conn *net.TCPConn, messages chan *Message) {
 		//Check if msg string has content and that it is a msg type
 		content := string(buf)
 
-		RouteRecievedMessage(user, content)
+		RouteRecievedMessage(connection, content)
 	}
 	return
 }
@@ -143,51 +115,6 @@ func handleError(err error) {
 		log.Println(err)
 		os.Exit(1)
 	}
-}
-
-func (c *AllConnections) broadcast(messages chan *Message) {
-	//Loop continually sending messages
-	for {
-		msg := <-messages
-		//If user left, remove from conn pool
-		if msg.isLast {
-		  	c.deleteConnection(msg.conn.RemoteAddr().String())
-	  		//continue
-		}
-
-		for _, conn := range c.connections {
-			//Write user message to group
-	  		fmt.Println(msg.msg + "\n")
-			_, err := conn.Write([]byte(msg.msg))
-			if err != nil {
-				c.deleteConnection(msg.conn.RemoteAddr().String())
-			}
-		}
-	}
-}
-
-func initUser(conn *net.TCPConn) *User {
-	//Read data from connection
-	buf := make([]byte, 2048)
-	_, err := conn.Read(buf)
-	if err != nil {
-		fmt.Println("Error reading:", err.Error())
-		return nil
-	}
-
-  buf = bytes.Trim(buf, "\x00")
-
-	data := string(buf)
-	if data == "" {
-		return nil
-	}
-
-	info := strings.Split(data, ":")
-	if len(info) < 2 || info[0] != "iam" {
-		return nil
-	}
-
-	return &User{Username: info[1]}
 }
 
 
