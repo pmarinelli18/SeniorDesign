@@ -30,14 +30,9 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 			fmt.Println("Display message")
 			fmt.Println(connection.RemoteAddr().String() + ": " + parameters["string"][0])
 			resondBack(connection, true)
-		} else if splitPath[0] == "login" && len(parameters["userName"]) > 0 && len(parameters["password"]) > 0 {
-			fmt.Println("Login")
-			result := CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
-			if result {
-				resondBack(connection, true)
-			} else{
-				resondBack(connection, false)
-			}
+		} else if splitPath[0] == "auth" {
+			authRouter(splitPath, parameters, connection)
+			
 		} else if splitPath[0] == "echo"  && len(parameters["string"]) > 0{
 			fmt.Println("Echo message to all")
 			SendMessageToAll(parameters["string"][0])
@@ -50,6 +45,22 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 	}
 }
 
+
+func authRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
+	result := false
+	if  len(splitPath) > 1 && splitPath[1] == "login" && len(parameters["userName"]) > 0 && len(parameters["password"]) > 0{
+		fmt.Println("Login")
+		result = CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
+	} else if len(splitPath) > 1 && splitPath[1] == "createAccount" && len(parameters["userName"]) > 0 && len(parameters["password"]) > 0{
+		fmt.Println("Create Account")
+		result = CreateNewAccount(parameters["userName"][0], parameters["password"][0])
+	}
+	if result {
+		resondBack(connection, true)
+	} else{
+		resondBack(connection, false)
+	}
+}
 
 func resondBack(connection *net.TCPConn, success bool){
 	message := "Failed"

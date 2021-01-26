@@ -46,3 +46,14 @@ func CheckIfValidLogin(userName string, password string) bool{
         return false
     }
 }
+
+func CreateNewAccount(userName string, password string) bool{
+    _, err := databaseConnection.Query("INSERT INTO Accounts(userName, password) VALUES (\""+ userName + "\", \"" + password + "\");")
+    if err != nil{
+        fmt.Println(err.Error())
+        return false
+    }
+    return true
+}
+
+

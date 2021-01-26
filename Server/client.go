@@ -20,10 +20,6 @@ func main() {
     // send to server
     text = strings.TrimSuffix(string(text),"\n")
     fmt.Fprintf(conn, text)
-
-    // reply := make([]byte, 1024)
-    // _, _ = conn.Read(reply)
-    // println("Reply=", string(reply))
     
   }
 }
