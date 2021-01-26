@@ -7,9 +7,13 @@ import (
 
 var databaseConnection *sql.DB 
 
-
+/*
 type Tag struct {
     userName   string    `json:"userName"`
+}
+*/
+type LogIn struct {
+    success   int   `json:"success"`
 }
 
 func MakeDatabaseConnection(){
@@ -19,26 +23,26 @@ func MakeDatabaseConnection(){
 
 	// if there is an error opening the connection, handle it
     if err != nil {
+        fmt.Println("ERROR: Cannot connect to the database")
         panic(err.Error())
     } else{
     	fmt.Println("Successful connected to database!")
     }
 }
 
-func CheckIfValidLogin(userName string, password string){
-	results, err := databaseConnection.Query("SELECT userName FROM Accounts")
+func CheckIfValidLogin(userName string, password string) bool{
+	results, err := databaseConnection.Query("SELECT Count(*) success from Accounts where userName = \""+ userName + "\" AND password=\"" + password + "\";")
     if err != nil {
-        panic(err.Error()) // proper error handling instead of panic in your app
+        return false
     }
 
-    for results.Next() {
-        var tag Tag
-        // for each row, scan the result into our tag composite object
-        err = results.Scan(&tag.userName)
-        if err != nil {
-            panic(err.Error()) // proper error handling instead of panic in your app
-        }
-                // and then print out the tag's Name attribute
-        fmt.Println(tag.userName)
+    var logIn LogIn
+    results.Next()
+    err = results.Scan(&logIn.success)
+
+    if logIn.success == 1{
+        return true
+    } else{
+        return false
     }
 }

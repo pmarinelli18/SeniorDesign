@@ -26,15 +26,19 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 
 
 	if len(splitPath) != 0 {
-		if splitPath[0] == "msg"{
+		if splitPath[0] == "msg" && len(parameters["string"]) > 0{
 			fmt.Println("Display message")
 			fmt.Println(connection.RemoteAddr().String() + ": " + parameters["string"][0])
 			resondBack(connection, true)
-		} else if splitPath[0] == "login" {
+		} else if splitPath[0] == "login" && len(parameters["userName"]) > 0 && len(parameters["password"]) > 0 {
 			fmt.Println("Login")
-			CheckIfValidLogin("userName", "password")
-			resondBack(connection, true)
-		} else if splitPath[0] == "echo"{
+			result := CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
+			if result {
+				resondBack(connection, true)
+			} else{
+				resondBack(connection, false)
+			}
+		} else if splitPath[0] == "echo"  && len(parameters["string"]) > 0{
 			fmt.Println("Echo message to all")
 			SendMessageToAll(parameters["string"][0])
 			resondBack(connection, true)
