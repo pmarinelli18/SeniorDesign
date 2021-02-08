@@ -7,7 +7,22 @@ Create Table Accounts(
     PRIMARY KEY(userName)
 );
 
+Create Table BoatState(
+	UserID VARCHAR(50),
+	navigationPosition INTEGER DEFAULT 0, 
+    RadarState VARCHAR(15) DEFAULT 'Enabled', 
+    ShipHealth INTEGER DEFAULT 100, 
+    NumberOfCannons INTEGER DEFAULT 3, 
+    TorpedoState VARCHAR(15) DEFAULT 'Standby',
+    TorpedoDamage INTEGER DEFAULT 0,
+    FinishedMiniGame BOOL DEFAULT false,
+    GameActive BOOL DEFAULT true,
+    PRIMARY KEY(UserID)
+);
+
 INSERT INTO Accounts(userName, password) 
 	Values
 	('userName 1', 'password'),
     ('userName 2', 'password2');
+    
+
