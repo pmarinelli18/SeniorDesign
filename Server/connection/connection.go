@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	CHOST = "10.20.0.197"
-	CPORT = "82"
+	CHOST = "localhost"
+	CPORT = "80"
 	CNET  = "tcp"
 )
 
@@ -59,6 +59,19 @@ func SendMessageToAll(message string){
 	}
 }
 
+func SendMessageToDevices(message string, devices []ConnectedDevices){
+	for _, device := range devices{
+		//Find the connection from allConnections
+		for _, conn := range allConnections.connections {
+			if (conn.RemoteAddr().String() == device.ipAddress){
+				//Send out the message to that device
+				conn.Write([]byte(message))
+				break
+			}
+		}
+	}
+}
+
 func ListenForNewConnections() {
 	//Create addr
 	addr, err := net.ResolveTCPAddr(CNET, CHOST+":"+CPORT)
@@ -97,6 +110,7 @@ func handleRequest(connection *net.TCPConn) {
 		if err != nil {
 			fmt.Println("Error reading:", err.Error())
 			fmt.Println(connection.RemoteAddr().String(), " has disconnected")
+			EndGame(connection)
 			DeleteConnection(connection.RemoteAddr().String())
 			return
 		}
