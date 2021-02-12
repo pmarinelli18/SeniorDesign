@@ -32,12 +32,14 @@ func MakeDatabaseConnection(){
         fmt.Println("ERROR: Cannot connect to the database")
         panic(err.Error())
     } else{
-    	fmt.Println("Successful connected to database!")
+        err = databaseConnection.Ping()
+        if err != nil{
+            fmt.Println("ERROR: Cannot connect to the database on Ping")
+        }else{
+    	    fmt.Println("Successful connected to database!")
+        }
     }
-    err = databaseConnection.Ping()
-    if err != nil{
-        fmt.Println("ERROR: Cannot connect to the database on Ping")
-    }
+ 
 }
 
 func CheckIfValidLogin(userName string, password string) bool{
@@ -76,6 +78,19 @@ func InitNewUser(userName string, ipAddress *net.TCPConn){
         }
 
         SendMessageToDevices(userNames, devices)
+}
+func getUsers(userName string, ipAddress *net.TCPConn){
+    dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
+    devices := make([]ConnectedDevices, 0)
+    userNames := ""
+    for dbConnections.Next() {
+        var newDevice ConnectedDevices
+        _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
+        devices = append(devices, newDevice)
+        userNames += newDevice.userName + " "
+    }
+
+    SendMessageToDevices(userNames, devices)
 }
 func CreateNewAccount(userName string, password string) bool{
     _, err := databaseConnection.Query("INSERT INTO Accounts(userName, password) VALUES (\""+ userName + "\", \"" + password + "\");")
