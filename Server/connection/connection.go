@@ -59,13 +59,13 @@ func SendMessageToAll(message string){
 	}
 }
 
-func SendMessageToDevices(message string, devices []ConnectedDevices){
+func SendMessageToDevices(message []byte, devices []ConnectedDevices){
 	for _, device := range devices{
 		//Find the connection from allConnections
 		for _, conn := range allConnections.connections {
 			if (conn.RemoteAddr().String() == device.ipAddress){
 				//Send out the message to that device
-				conn.Write([]byte(message))
+				conn.Write(message)
 				break
 			}
 		}

@@ -4,6 +4,8 @@ import (
 	"strings"
 	"net/url"
 	"net"
+	"encoding/json"
+	"strconv"
 )
 
 /*
@@ -29,7 +31,7 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 		if splitPath[0] == "msg" && len(parameters["string"]) > 0{
 			fmt.Println("Display message")
 			fmt.Println(connection.RemoteAddr().String() + ": " + parameters["string"][0])
-			resondBack(connection, true)
+			resondBack("displayMessage", connection, true)
 		} else if splitPath[0] == "auth" {
 			authRouter(splitPath, parameters, connection)
 			
@@ -39,31 +41,35 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 		} else if splitPath[0] == "echo"  && len(parameters["string"]) > 0{
 			fmt.Println("Echo message to all")
 			SendMessageToAll(parameters["string"][0])
-			resondBack(connection, true)
+			resondBack("echo message", connection, true)
 		} else{
-			resondBack(connection, false)
+			resondBack("bad api call", connection, false)
 		}
 	} else{
-		resondBack(connection, false)
+		resondBack("bad api call", connection, false)
 	}
 }
 
 
 func authRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
 	result := false
+	tag := "bad api call"
+
 	if  len(splitPath) > 1 && splitPath[1] == "login" && len(parameters["userName"]) > 0 && len(parameters["password"]) > 0{
 		fmt.Println("Login")
+		tag = "login"
 		result = CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
 	} else if len(splitPath) > 1 && splitPath[1] == "createAccount" && len(parameters["userName"]) > 0 && len(parameters["password"]) > 0{
 		fmt.Println("Create Account")
+		tag = "createAccount"
 		result = CreateNewAccount(parameters["userName"][0], parameters["password"][0])
 	}
 
 	if result {
-		resondBack(connection, true)
+		resondBack(tag, connection, true)
 		InitNewUser(parameters["userName"][0], connection)
 	} else{
-		resondBack(connection, false)
+		resondBack(tag, connection, false)
 	}
 }
 
@@ -75,24 +81,17 @@ func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 		//result = CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
 	}
 	if result {
-		resondBack(connection, true)
+		resondBack("TODO", connection, true)
 	} else{
-		resondBack(connection, false)
+		resondBack("TODO", connection, false)
 	}
 }
 
-func resondBack(connection *net.TCPConn, success bool){
-	message := "Failed"
-	if success {
-		message = "Success"
-	}
-	_, err := connection.Write([]byte(message))
+func resondBack(tag string, connection *net.TCPConn, success bool){
+	mapD := map[string]string{"id": tag, "result": strconv.FormatBool(success)}
+	mapB, _ := json.Marshal(mapD)
+	_, err := connection.Write([]byte(mapB))
 	if err != nil {
 		DeleteConnection(connection.RemoteAddr().String())
 	}
-}
-
-
-func sendMessageToAllConnections(){
-
 }
