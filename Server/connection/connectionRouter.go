@@ -35,7 +35,10 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 		} else if splitPath[0] == "auth" {
 			authRouter(splitPath, parameters, connection)
 			
-		} else if splitPath[0] == "game" {
+		} else if splitPath[0] == "get" {
+			getRouter(splitPath, parameters, connection)
+			
+		}else if splitPath[0] == "game" {
 			gameRouter(splitPath, parameters, connection)
 			
 		} else if splitPath[0] == "echo"  && len(parameters["string"]) > 0{
@@ -50,7 +53,12 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 	}
 }
 
-
+func getRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
+	if len(splitPath) > 1 && splitPath[1] == "getUsers" && len(parameters["userName"]) > 0 {
+		fmt.Println("Get Users")
+		getUsers(parameters["userName"][0], connection)
+	}
+}
 func authRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
 	result := false
 	tag := "bad api call"
@@ -63,6 +71,9 @@ func authRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 		fmt.Println("Create Account")
 		tag = "createAccount"
 		result = CreateNewAccount(parameters["userName"][0], parameters["password"][0])
+	} else if len(splitPath) > 1 && splitPath[1] == "getUsers" && len(parameters["userName"]) > 0 {
+		fmt.Println("Get Users")
+		getUsers(parameters["userName"][0], connection)
 	}
 
 	if result {

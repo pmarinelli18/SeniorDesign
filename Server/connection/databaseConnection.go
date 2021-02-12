@@ -26,15 +26,21 @@ type ConnectedDevices struct {
 func MakeDatabaseConnection(){
 	var err error
 
-	 databaseConnection, err = sql.Open("mysql", "root:password@tcp(localhost)/BattleShip")
+    databaseConnection, err = sql.Open("mysql", "root:password@tcp(localhost)/BattleShip")
 
 	// if there is an error opening the connection, handle it
     if err != nil {
         fmt.Println("ERROR: Cannot connect to the database")
         panic(err.Error())
     } else{
-    	fmt.Println("Successful connected to database!")
+        err = databaseConnection.Ping()
+        if err != nil{
+            fmt.Println("ERROR: Cannot connect to the database on Ping")
+        }else{
+    	    fmt.Println("Successful connected to database!")
+        }
     }
+ 
 }
 
 func CheckIfValidLogin(userName string, password string) bool{
@@ -81,6 +87,19 @@ func InitNewUser(userName string, ipAddress *net.TCPConn){
         
 
         SendMessageToDevices(mapB, devices)
+}
+func getUsers(userName string, ipAddress *net.TCPConn){
+    dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
+    devices := make([]ConnectedDevices, 0)
+    userNames := ""
+    for dbConnections.Next() {
+        var newDevice ConnectedDevices
+        _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
+        devices = append(devices, newDevice)
+        userNames += newDevice.userName + " "
+    }
+
+    SendMessageToDevices(userNames, devices)
 }
 func CreateNewAccount(userName string, password string) bool{
     _, err := databaseConnection.Query("INSERT INTO Accounts(userName, password) VALUES (\""+ userName + "\", \"" + password + "\");")
