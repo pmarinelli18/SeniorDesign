@@ -71,9 +71,10 @@ func authRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 		fmt.Println("Create Account")
 		tag = "createAccount"
 		result = CreateNewAccount(parameters["userName"][0], parameters["password"][0])
-	} else if len(splitPath) > 1 && splitPath[1] == "getUsers" && len(parameters["userName"]) > 0 {
+	} else if len(splitPath) > 1 && splitPath[1] == "getUsers"{
 		fmt.Println("Get Users")
 		getUsers()
+		return
 	}
 
 	if result {
