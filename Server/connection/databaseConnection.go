@@ -19,7 +19,7 @@ type LogIn struct {
 func MakeDatabaseConnection(){
 	var err error
 
-	 databaseConnection, err = sql.Open("mysql", "root:password@tcp(localhost)/BattleShip")
+    databaseConnection, err = sql.Open("mysql", "root:password@tcp(localhost)/BattleShip")
 
 	// if there is an error opening the connection, handle it
     if err != nil {
@@ -27,6 +27,10 @@ func MakeDatabaseConnection(){
         panic(err.Error())
     } else{
     	fmt.Println("Successful connected to database!")
+    }
+    err = databaseConnection.Ping()
+    if err != nil{
+        fmt.Println("ERROR: Cannot connect to the database on Ping")
     }
 }
 
