@@ -33,6 +33,9 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 		} else if splitPath[0] == "auth" {
 			authRouter(splitPath, parameters, connection)
 			
+		} else if splitPath[0] == "game" {
+			gameRouter(splitPath, parameters, connection)
+			
 		} else if splitPath[0] == "echo"  && len(parameters["string"]) > 0{
 			fmt.Println("Echo message to all")
 			SendMessageToAll(parameters["string"][0])
@@ -54,6 +57,22 @@ func authRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 	} else if len(splitPath) > 1 && splitPath[1] == "createAccount" && len(parameters["userName"]) > 0 && len(parameters["password"]) > 0{
 		fmt.Println("Create Account")
 		result = CreateNewAccount(parameters["userName"][0], parameters["password"][0])
+	}
+
+	if result {
+		resondBack(connection, true)
+		InitNewUser(parameters["userName"][0], connection)
+	} else{
+		resondBack(connection, false)
+	}
+}
+
+func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
+	result := false
+	if  len(splitPath) > 1 && splitPath[1] == "recordResult" && len(parameters["miniGame"]) > 0 && len(parameters["score"]) > 0{
+		fmt.Println("Saving game result")
+		
+		//result = CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
 	}
 	if result {
 		resondBack(connection, true)
