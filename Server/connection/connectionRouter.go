@@ -54,9 +54,9 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 }
 
 func getRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
-	if len(splitPath) > 1 && splitPath[1] == "getUsers" && len(parameters["userName"]) > 0 {
+	if len(splitPath) > 1 && splitPath[1] == "getUsers" {
 		fmt.Println("Get Users")
-		getUsers(parameters["userName"][0], connection)
+		getUsers()
 	}
 }
 func authRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
@@ -73,7 +73,7 @@ func authRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 		result = CreateNewAccount(parameters["userName"][0], parameters["password"][0])
 	} else if len(splitPath) > 1 && splitPath[1] == "getUsers" && len(parameters["userName"]) > 0 {
 		fmt.Println("Get Users")
-		getUsers(parameters["userName"][0], connection)
+		getUsers()
 	}
 
 	if result {

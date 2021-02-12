@@ -68,38 +68,28 @@ func EndGame(ipAddress *net.TCPConn) {
 func InitNewUser(userName string, ipAddress *net.TCPConn){
     //Init the user's game
         _, _ = databaseConnection.Query("INSERT INTO BoatState(IpAddress, UserName) Values (\""+ ipAddress.RemoteAddr().String() + "\", \""+ userName + "\");")
-        dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
-        devices := make([]ConnectedDevices, 0)
-        userNames := make([]string, 0)
-
-        for dbConnections.Next() {
-            var newDevice ConnectedDevices
-            _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
-            devices = append(devices, newDevice)
-            userNames = append(userNames, newDevice.userName)
-        }
-
-        mapD := map[string]interface{}{
-            "id": "connectedDevices",
-            "userNames": userNames,
-        }
-        mapB, _ := json.Marshal(mapD)
-        
-
-        SendMessageToDevices(mapB, devices)
+        getUsers()
 }
-func getUsers(userName string, ipAddress *net.TCPConn){
+func getUsers(){
     dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
     devices := make([]ConnectedDevices, 0)
-    userNames := ""
+    userNames := make([]string, 0)
+
     for dbConnections.Next() {
         var newDevice ConnectedDevices
         _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
         devices = append(devices, newDevice)
-        userNames += newDevice.userName + " "
+        userNames = append(userNames, newDevice.userName)
     }
 
-    SendMessageToDevices(userNames, devices)
+    mapD := map[string]interface{}{
+        "id": "connectedDevices",
+        "userNames": userNames,
+    }
+    mapB, _ := json.Marshal(mapD)
+    
+
+    SendMessageToDevices(mapB, devices)
 }
 func CreateNewAccount(userName string, password string) bool{
     _, err := databaseConnection.Query("INSERT INTO Accounts(userName, password) VALUES (\""+ userName + "\", \"" + password + "\");")
