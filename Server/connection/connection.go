@@ -10,8 +10,8 @@ import (
 )
 
 var (
-	CHOST = "10.20.0.197"
-	CPORT = "82"
+	CHOST = "127.0.0.1"
+	CPORT = "8000"
 	CNET  = "tcp"
 )
 

@@ -10,7 +10,7 @@ import "strings"
 func main() {
 
   // connect to server
-  conn,_  := net.Dial("tcp", "10.20.0.197:82")
+  conn,_  := net.Dial("tcp", "127.0.0.1:8000")
   go listener(conn)
   for {
     // what to send?
