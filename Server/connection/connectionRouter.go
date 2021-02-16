@@ -91,6 +91,18 @@ func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 		fmt.Println("Saving game result")
 		
 		//result = CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
+	} else if len(splitPath) > 1 && splitPath[1] == "repairShip" {
+		fmt.Println("Repairing ship")
+		// Table increases ship's health by 25
+	} else if  len(splitPath) > 1 && splitPath[1] == "hitConfirm" && len(parameters["weaponType"]) > 0 {
+		fmt.Println("Attack landed")
+		// Update health of ship based on which weapoon type was used
+	} else if  len(splitPath) > 1 && splitPath[1] == "navigation" && len(parameters["pos"]) > 0 {
+                fmt.Println("Changing position")
+                // Updates the navigation position of the ship
+	} else if  len(splitPath) > 1 && splitPath[1] == "hackRadar" {
+                fmt.Println("Radar Disabled")
+                // Switches the radar of a ship to "0" (off)
 	}
 	if result {
 		resondBack("TODO", connection, true)
