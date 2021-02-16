@@ -58,6 +58,10 @@ func getRouter(splitPath []string, parameters url.Values, connection *net.TCPCon
 		fmt.Println("Get Users")
 		getUsers()
 	}
+	if len(splitPath) > 1 && splitPath[1] == "boatState" {
+		fmt.Println("Get boat state")
+		GetBoatState(connection)
+	}
 }
 func authRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
 	result := false

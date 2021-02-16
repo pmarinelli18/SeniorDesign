@@ -23,6 +23,15 @@ type ConnectedDevices struct {
     userName   string
 }
 
+type BoatState struct {
+    navigationPosition   string
+    radarState   string
+    shipHealth   string
+    numberOfCannons   string
+    torpedoState   string
+    opponentHealth   string
+}
+
 func MakeDatabaseConnection(){
 	var err error
 
@@ -87,8 +96,6 @@ func getUsers(){
         "userNames": userNames,
     }
     mapB, _ := json.Marshal(mapD)
-    
-
     SendMessageToDevices(mapB, devices)
 }
 func CreateNewAccount(userName string, password string) bool{
@@ -99,5 +106,36 @@ func CreateNewAccount(userName string, password string) bool{
     }
     return true
 }
+
+func GetBoatState(ipAddress *net.TCPConn){
+    boatStateResult := databaseConnection.QueryRow("SELECT navigationPosition, RadarState radarState, ShipHealth shipHealth, NumberOfCannons numberOfCannons, TorpedoState torpedoState, opponentBoat.opponentHealth from BoatState join (select ShipHealth opponentHealth from BoatState where IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1) as opponentBoat where IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+    
+    var boatState BoatState
+    _ = boatStateResult.Scan(&boatState.navigationPosition, &boatState.radarState, &boatState.shipHealth, &boatState.numberOfCannons, &boatState.torpedoState, &boatState.opponentHealth)
+    fmt.Println(boatState.shipHealth)
+    cannonState := "Enabled"
+    if boatState.numberOfCannons == "0"{
+        cannonState = "Reloading"
+    }
+    mapD := map[string]interface{}{
+        "id":"boatState",
+        "boatHealth": map[string]interface{}{
+            "yourHeath": boatState.shipHealth,
+            "opponentHealth": boatState.opponentHealth,
+        },
+        "stateOfBoatFeatures": map[string]interface{}{
+            "radar": boatState.radarState,
+            "torpedo": boatState.torpedoState,
+            "cannons": map[string]interface{}{
+                "state": cannonState,
+                "numberOfCannons": boatState.numberOfCannons,
+            },
+        },
+        "boatPosition": boatState.navigationPosition,
+    }
+    mapB, _ := json.Marshal(mapD)
+    _, _ = ipAddress.Write([]byte(mapB))
+}
+
 
 
