@@ -1,6 +1,7 @@
 package connection
 import (
 	"fmt"
+	//"strconv"
 	"database/sql"
     _ "github.com/go-sql-driver/mysql"
     "net"
@@ -70,6 +71,40 @@ func InitNewUser(userName string, ipAddress *net.TCPConn){
         _, _ = databaseConnection.Query("INSERT INTO BoatState(IpAddress, UserName) Values (\""+ ipAddress.RemoteAddr().String() + "\", \""+ userName + "\");")
         getUsers()
 }
+
+func FireWeapon(wep string, ipAddress *net.TCPConn) {
+	if wep == "1" {
+		fmt.Println("Cannon Incoming")
+		_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth - 25 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+		_, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = NumberOfCannons - 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+	} else if wep == "2" {
+		fmt.Println("Torpedo Incoming")
+		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 40 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoState = \"Cooldown\" WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+	} else if wep == "3" {
+                fmt.Println("Mounted MG Incoming")
+                 _, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth - 10 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+	} else {
+		fmt.Println("Invalid Weapon Type")
+	}
+}
+
+func RepairShip(ipAddress *net.TCPConn) {
+	_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth + 25 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+}
+
+func HackRadar(ipAddress *net.TCPConn) {
+        _, _ = databaseConnection.Query("UPDATE BoatState SET RadarState = \"Hacked\" WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+}
+
+func FixRadar(ipAddress *net.TCPConn) {
+        _, _ = databaseConnection.Query("UPDATE BoatState SET RadarState = \"Enabled\" WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+}
+
+func ChangePosition(pos string,ipAddress *net.TCPConn) {
+	_, _ = databaseConnection.Query("UPDATE BoatState SET navigationPosition = " + pos + "  WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+}
+
 func getUsers(){
     dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
     devices := make([]ConnectedDevices, 0)

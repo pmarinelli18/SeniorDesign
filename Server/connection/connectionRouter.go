@@ -88,21 +88,26 @@ func authRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
 	result := false
 	if  len(splitPath) > 1 && splitPath[1] == "recordResult" && len(parameters["miniGame"]) > 0 && len(parameters["score"]) > 0{
-		fmt.Println("Saving game result")
-		
+		fmt.Println("Saving game result")		
 		//result = CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
 	} else if len(splitPath) > 1 && splitPath[1] == "repairShip" {
 		fmt.Println("Repairing ship")
-		// Table increases ship's health by 25
+		RepairShip(connection)
+		return
 	} else if  len(splitPath) > 1 && splitPath[1] == "hitConfirm" && len(parameters["weaponType"]) > 0 {
+		var wep string = parameters["weaponType"][0]
+		FireWeapon(wep,connection)
 		fmt.Println("Attack landed")
-		// Update health of ship based on which weapoon type was used
+		return
 	} else if  len(splitPath) > 1 && splitPath[1] == "navigation" && len(parameters["pos"]) > 0 {
                 fmt.Println("Changing position")
-                // Updates the navigation position of the ship
+		var pos string = parameters["pos"][0]
+		ChangePosition(pos,connection)
+		return
 	} else if  len(splitPath) > 1 && splitPath[1] == "hackRadar" {
-                fmt.Println("Radar Disabled")
-                // Switches the radar of a ship to "0" (off)
+                fmt.Println("Disabling Radar")
+		HackRadar(connection)
+		return
 	}
 	if result {
 		resondBack("TODO", connection, true)
