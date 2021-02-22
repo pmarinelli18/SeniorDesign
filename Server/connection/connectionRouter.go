@@ -112,7 +112,11 @@ func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
                 fmt.Println("Disabling Radar")
 		HackRadar(connection)
 		return
-	}
+	} else if  len(splitPath) > 1 && splitPath[1] == "fixRadar" {
+                fmt.Println("Restoring Radar System")
+                FixRadar(connection)
+                return
+        } 
 	if result {
 		resondBack("TODO", connection, true)
 	} else{
