@@ -19,6 +19,10 @@ type LogIn struct {
     success   int   `json:"success"`
 }
 
+type PlayersFinished struct {
+    playersFinished   string
+}
+
 type ConnectedDevices struct {
     ipAddress   string
     userName   string
@@ -48,6 +52,7 @@ func MakeDatabaseConnection(){
             fmt.Println("ERROR: Cannot connect to the database on Ping")
         }else{
     	    fmt.Println("Successful connected to database!")
+            clearAccountsTable();
         }
     }
  
@@ -81,37 +86,90 @@ func InitNewUser(userName string, ipAddress *net.TCPConn){
         getUsers()
 }
 
+func clearAccountsTable() {
+    _, _ = databaseConnection.Query("TRUNCATE TABLE BoatState;")
+}
+
 func FireWeapon(wep string, ipAddress *net.TCPConn) {
 	if wep == "1" {
 		fmt.Println("Cannon Incoming")
 		_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth - 25 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
-		_, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = NumberOfCannons - 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+		_, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = NumberOfCannons - 1, FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
 	} else if wep == "2" {
 		fmt.Println("Torpedo Incoming")
 		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 40 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
-		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoState = \"Cooldown\" WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoState = \"Cooldown\", FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
 	} else if wep == "3" {
                 fmt.Println("Mounted MG Incoming")
                  _, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth - 10 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
 	} else {
 		fmt.Println("Invalid Weapon Type")
 	}
+    checkIfBothPlayersAreFinished()
 }
 
 func RepairShip(ipAddress *net.TCPConn) {
-	_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth + 25 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+	_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth + 25, FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+    checkIfBothPlayersAreFinished()
 }
 
 func HackRadar(ipAddress *net.TCPConn) {
-        _, _ = databaseConnection.Query("UPDATE BoatState SET RadarState = \"Hacked\" WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+    _, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+    _, _ = databaseConnection.Query("UPDATE BoatState SET RadarState = \"Hacked\" WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+    checkIfBothPlayersAreFinished()
 }
 
 func FixRadar(ipAddress *net.TCPConn) {
-        _, _ = databaseConnection.Query("UPDATE BoatState SET RadarState = \"Enabled\" WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+    _, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+    _, _ = databaseConnection.Query("UPDATE BoatState SET RadarState = \"Enabled\"WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+    checkIfBothPlayersAreFinished()
 }
 
 func ChangePosition(pos string,ipAddress *net.TCPConn) {
-	_, _ = databaseConnection.Query("UPDATE BoatState SET navigationPosition = " + pos + "  WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+    _, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+	_, _ = databaseConnection.Query("UPDATE BoatState SET navigationPosition = " + pos + " WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+    checkIfBothPlayersAreFinished()
+}
+
+func checkIfBothPlayersAreFinished(){
+    count := databaseConnection.QueryRow("SELECT Count(*) playersFinished from BoatState where FinishedMiniGame = 1;")
+
+    var status PlayersFinished
+    _ = count.Scan(&status.playersFinished)
+    if status.playersFinished == "2"{
+        fmt.Println("Both players are finsied!")
+        //Send the boatState to each player, reset FinishedMiniGame
+        _, _ = databaseConnection.Query("UPDATE boatState SET FinishedMiniGame = 0;")
+
+        //Find all connections and get the conn value
+        dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
+        for dbConnections.Next() {
+            var newDevice ConnectedDevices
+            _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
+            conn := GetConnection(newDevice)
+            GetBoatState(conn)
+
+        }
+    }
+
+}
+
+func StartGame(){
+    dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
+    devices := make([]ConnectedDevices, 0)
+
+    for dbConnections.Next() {
+        var newDevice ConnectedDevices
+        _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
+        devices = append(devices, newDevice)
+    }
+
+    mapD := map[string]interface{}{
+        "id": "startGame",
+        "result": "true",
+    }
+    mapB, _ := json.Marshal(mapD)
+    SendMessageToDevices(mapB, devices)
 }
 
 func getUsers(){

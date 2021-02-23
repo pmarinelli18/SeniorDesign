@@ -90,7 +90,7 @@ func authRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 }
 
 func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPConn){
-	result := false
+	//result := false
 	if  len(splitPath) > 1 && splitPath[1] == "recordResult" && len(parameters["miniGame"]) > 0 && len(parameters["score"]) > 0{
 		fmt.Println("Saving game result")		
 		//result = CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
@@ -104,24 +104,30 @@ func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 		fmt.Println("Attack landed")
 		return
 	} else if  len(splitPath) > 1 && splitPath[1] == "navigation" && len(parameters["pos"]) > 0 {
-                fmt.Println("Changing position")
+        fmt.Println("Changing position")
 		var pos string = parameters["pos"][0]
 		ChangePosition(pos,connection)
 		return
 	} else if  len(splitPath) > 1 && splitPath[1] == "hackRadar" {
-                fmt.Println("Disabling Radar")
+        fmt.Println("Disabling Radar")
 		HackRadar(connection)
 		return
 	} else if  len(splitPath) > 1 && splitPath[1] == "fixRadar" {
-                fmt.Println("Restoring Radar System")
-                FixRadar(connection)
-                return
-        } 
+        fmt.Println("Restoring Radar System")
+        FixRadar(connection)
+        return
+    }  else if len(splitPath) > 1 && splitPath[1] == "startGame"{
+    	fmt.Println("Starting Game")
+    	StartGame();
+    }
+	
+	/*
 	if result {
 		resondBack("TODO", connection, true)
 	} else{
 		resondBack("TODO", connection, false)
 	}
+	*/
 }
 
 func resondBack(tag string, connection *net.TCPConn, success bool){

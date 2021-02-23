@@ -72,6 +72,17 @@ func SendMessageToDevices(message []byte, devices []ConnectedDevices){
 	}
 }
 
+func GetConnection(device ConnectedDevices) *net.TCPConn{
+		//Find the connection from allConnections
+	for _, conn := range allConnections.connections {
+		if (conn.RemoteAddr().String() == device.ipAddress){
+			//Send out the message to that device
+			return conn
+		}
+	}
+	return nil
+}
+
 func ListenForNewConnections() {
 	//Create addr
 	addr, err := net.ResolveTCPAddr(CNET, CHOST+":"+CPORT)

@@ -7,20 +7,11 @@ Create Table Accounts(
     PRIMARY KEY(userName)
 );
 
-Create Table BoatState(
-    ipAddress VARCHAR(50),
-    cannonActive BOOL DEFAULT false, 
-    mountedMGActive BOOL DEFAULT false, 
-    torpedoActive BOOL DEFAULT false, 
-    radarActive BOOL DEFAULT false, 
-    shipHealthStatus DOUBLE DEFAULT 1.0,
-    PRIMARY KEY(ipAddress)
-);
-
 INSERT INTO Accounts(userName, password) 
     Values
-    ('userName 1', 'password'),
-    ('userName 2', 'password2');
+    ('userName1', 'password'),
+    ('userName2', 'password2'),
+    ('u', 'p');
     
 Create Table BoatState(
     IpAddress VARCHAR(50),
@@ -35,3 +26,5 @@ Create Table BoatState(
     GameActive BOOL DEFAULT true,
     PRIMARY KEY(ipAddress)
 );
+
+SET SQL_SAFE_UPDATES = 0;
