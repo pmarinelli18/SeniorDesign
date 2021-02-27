@@ -116,10 +116,15 @@ func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
         fmt.Println("Restoring Radar System")
         FixRadar(connection)
         return
+    } else if  len(splitPath) > 1 && splitPath[1] == "lostGame" {
+        fmt.Println("Player did not win")
+        PlayerLostMiniGame(connection)
+        return
     }  else if len(splitPath) > 1 && splitPath[1] == "startGame"{
     	fmt.Println("Starting Game")
     	StartGame();
     }
+
 	
 	/*
 	if result {

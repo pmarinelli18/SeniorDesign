@@ -35,6 +35,8 @@ type BoatState struct {
     numberOfCannons   string
     torpedoState   string
     opponentHealth   string
+    opponentUserName   string
+    userName     string
 }
 
 func MakeDatabaseConnection(){
@@ -131,6 +133,11 @@ func ChangePosition(pos string,ipAddress *net.TCPConn) {
     checkIfBothPlayersAreFinished()
 }
 
+func PlayerLostMiniGame(ipAddress *net.TCPConn) {
+    _, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+    checkIfBothPlayersAreFinished()
+}
+
 func checkIfBothPlayersAreFinished(){
     count := databaseConnection.QueryRow("SELECT Count(*) playersFinished from BoatState where FinishedMiniGame = 1;")
 
@@ -147,7 +154,12 @@ func checkIfBothPlayersAreFinished(){
             var newDevice ConnectedDevices
             _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
             conn := GetConnection(newDevice)
-            GetBoatState(conn)
+
+            mapD := map[string]interface{}{
+                "id":"continueToInGameScreen",
+            }
+            mapB, _ := json.Marshal(mapD)
+            _, _ = conn.Write([]byte(mapB))
 
         }
     }
@@ -201,10 +213,10 @@ func CreateNewAccount(userName string, password string) bool{
 }
 
 func GetBoatState(ipAddress *net.TCPConn){
-    boatStateResult := databaseConnection.QueryRow("SELECT navigationPosition, RadarState radarState, ShipHealth shipHealth, NumberOfCannons numberOfCannons, TorpedoState torpedoState, opponentBoat.opponentHealth from BoatState join (select ShipHealth opponentHealth from BoatState where IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1) as opponentBoat where IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+    boatStateResult := databaseConnection.QueryRow("SELECT navigationPosition, RadarState radarState, ShipHealth shipHealth, NumberOfCannons numberOfCannons, TorpedoState torpedoState, opponentBoat.opponentHealth, opponentBoat.opponentUserName, UserName userName from BoatState join (select ShipHealth opponentHealth, UserName opponentUserName from BoatState where IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1) as opponentBoat where IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
     
     var boatState BoatState
-    _ = boatStateResult.Scan(&boatState.navigationPosition, &boatState.radarState, &boatState.shipHealth, &boatState.numberOfCannons, &boatState.torpedoState, &boatState.opponentHealth)
+    _ = boatStateResult.Scan(&boatState.navigationPosition, &boatState.radarState, &boatState.shipHealth, &boatState.numberOfCannons, &boatState.torpedoState, &boatState.opponentHealth, &boatState.opponentUserName, &boatState.userName)
     fmt.Println(boatState.shipHealth)
     cannonState := "Enabled"
     if boatState.numberOfCannons == "0"{
@@ -212,9 +224,13 @@ func GetBoatState(ipAddress *net.TCPConn){
     }
     mapD := map[string]interface{}{
         "id":"boatState",
+        "userName": map[string]interface{}{
+            "p1UserName": boatState.userName,
+            "p2UserName": boatState.opponentUserName,
+        },
         "boatHealth": map[string]interface{}{
-            "yourHeath": boatState.shipHealth,
-            "opponentHealth": boatState.opponentHealth,
+            "p1Heath": boatState.shipHealth,
+            "p2Health": boatState.opponentHealth,
         },
         "stateOfBoatFeatures": map[string]interface{}{
             "radar": boatState.radarState,
