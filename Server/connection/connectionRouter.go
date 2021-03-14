@@ -45,6 +45,10 @@ func RouteRecievedMessage(connection *net.TCPConn, messageContent string){
 			fmt.Println("Echo message to all")
 			SendMessageToAll(parameters["string"][0])
 			resondBack("echo message", connection, true)
+		} else if splitPath[0] == "hardwareConnection" {
+			fmt.Println("Hardware device has connected")
+			SetHardwareConnection(connection)
+			// resondBack("echo message", connection, true)
 		} else{
 			resondBack("bad api call", connection, false)
 		}
