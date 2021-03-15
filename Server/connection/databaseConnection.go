@@ -162,6 +162,8 @@ func checkIfBothPlayersAreFinished(){
             _, _ = conn.Write([]byte(mapB))
 
         }
+
+        SendAnimationDataToHardware()
     }
 
 }
@@ -182,6 +184,8 @@ func StartGame(){
     }
     mapB, _ := json.Marshal(mapD)
     SendMessageToDevices(mapB, devices)
+
+    SendAnimationDataToHardware()
 }
 
 func getUsers(){
@@ -244,6 +248,37 @@ func GetBoatState(ipAddress *net.TCPConn){
     }
     mapB, _ := json.Marshal(mapD)
     _, _ = ipAddress.Write([]byte(mapB))
+}
+
+func SendAnimationDataToHardware(){
+    //Find all connections and get the conn value
+    dbConnections, _ := databaseConnection.Query("Select RadarState radarState, ShipHealth shipHealth from BoatState where GameActive = true;")
+    
+    var radarStates [2]string
+    var healths [2]string
+    var index = 0
+
+    for dbConnections.Next() {
+        var boatState BoatState
+        _ = dbConnections.Scan(&boatState.radarState, &boatState.shipHealth)
+        radarStates[index] = boatState.radarState
+        healths[index] = boatState.shipHealth
+        index += 1
+    }
+
+    mapD := map[string]interface{}{
+        "player1": map[string]interface{}{
+            "health": healths[0],
+            "radarState": radarStates[0],
+        },
+        "player2": map[string]interface{}{
+            "health": healths[1],
+            "radarState": radarStates[1],
+        },
+    }
+
+    mapB, _ := json.Marshal(mapD)
+    SendMessageToHardware(mapB)
 }
 
 

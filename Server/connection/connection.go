@@ -76,8 +76,8 @@ func SendMessageToDevices(message []byte, devices []ConnectedDevices){
 	}
 }
 
-func SendMessageToHardware(message string){
-	hardwareConnection.Write([]byte(message))
+func SendMessageToHardware(message []byte){
+	hardwareConnection.Write(message)
 }
 
 func GetConnection(device ConnectedDevices) *net.TCPConn{
