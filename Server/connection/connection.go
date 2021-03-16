@@ -17,7 +17,7 @@ var (
 
 var allConnections = &AllConnections{ connections: make(map[string]*net.TCPConn) }
 
-var hardwareConnection *net.TCPConn
+var hardwareConnection *net.TCPConn = nil;
 
 //Conns contains all connections
 type AllConnections struct {
@@ -77,7 +77,9 @@ func SendMessageToDevices(message []byte, devices []ConnectedDevices){
 }
 
 func SendMessageToHardware(message []byte){
-	hardwareConnection.Write(message)
+	if (hardwareConnection != nil){
+		hardwareConnection.Write(message)
+	}
 }
 
 func GetConnection(device ConnectedDevices) *net.TCPConn{
