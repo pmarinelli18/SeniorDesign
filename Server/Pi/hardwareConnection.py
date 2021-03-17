@@ -1,13 +1,12 @@
 import socket
 import json
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 
 from Motor import *
 
 
 import threading
-
 
 #1 is the pin it is connected to
 testMotor = Motor(1)
