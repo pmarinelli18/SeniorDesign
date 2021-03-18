@@ -7,9 +7,9 @@ from Motor import *
 
 
 import threading
-
+GPIO.setwarnings(False)
 #1 is the pin it is connected to
-testMotor = Motor(1)
+testMotor = Motor(5)
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -40,10 +40,9 @@ while 1:
 s.close()
 
 
-
-
 #effects:
 #Damage on LED
 #Radar spin or not
 #Cannon shoot back and forth a few times
 #Torpedo LEDs
+

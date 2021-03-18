@@ -2,8 +2,8 @@ import sys
 import threading
 #import numpy as np # to work with numerical data efficiently
 
-#import RPi.GPIO as GPIO 
-from time import sleep
+import RPi.GPIO as GPIO 
+import time
 
 class Motor():
 
@@ -14,25 +14,32 @@ class Motor():
 		GPIO.setup(stepPin, GPIO.OUT)
 		self.pwm = GPIO.PWM(stepPin, 50)		#PWM is set to 50 HZ- from spec
 		self.pwm.start(0)
-		
-	def spinMotor(self, stop):
 
+	def setDirection(self, direction):
+		a=10
+		b=2
+		duty = a / 180 * direction + b
+		self.pwm.ChangeDutyCycle(duty)
+		time.sleep(.1) # Change sleep time to change speed
+
+	def spinMotor(self, stop):
+		#self.pwm = GPIO.PWM(5, 50)
+		#self.pwm.start(0)
 		while True:
-			for direction in range(0, 181, 10):
-				setDirection(direction)
-			for direction in range(181, 0, -10):
-				setDirection(direction)
+			for direction in range(10, 170, 10):
+				self.setDirection(direction)
+			for direction in range(170, 10, -10):
+				self.setDirection(direction)
 			print("Spin")
 			#sleep(5);
 
 			if stop():
+				self.pwm.ChangeDutyCycle(0)
+				#self.pwm.stop()
 				print("Done!")
 				break
 
-	def setDirection(direction):
-		duty = a / 180 * direction + b
-		self.pwm.ChangeDutyCycle(duty)
-		time.sleep(1) # Change sleep time to change speed
+
 	
 	def startSpinningMotor(self):
 		self.stop_threads = False
@@ -43,10 +50,3 @@ class Motor():
 		self.stop_threads = True
 		print("Stopping spin")
 		self.t1.join() 
-
-		
-
-
-
-
-
