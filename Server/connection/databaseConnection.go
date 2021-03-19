@@ -20,7 +20,7 @@ type LogIn struct {
 }
 
 type PlayersFinished struct {
-    playersFinished   string
+    IpAddress   string
 }
 
 type ConnectedDevices struct {
@@ -139,14 +139,22 @@ func PlayerLostMiniGame(ipAddress *net.TCPConn) {
 }
 
 func checkIfBothPlayersAreFinished(){
-    count := databaseConnection.QueryRow("SELECT Count(*) playersFinished from BoatState where FinishedMiniGame = 1;")
+    addressesResult, _ := databaseConnection.Query("SELECT IpAddress from BoatState where FinishedMiniGame = 1;")
 
-    var status PlayersFinished
-    _ = count.Scan(&status.playersFinished)
-    if status.playersFinished == "2"{
+    var ipAddresses [2]string
+    var index = 0;
+    for addressesResult.Next(){
+        var status PlayersFinished
+        _ = addressesResult.Scan(&status.IpAddress)
+        ipAddresses[index] = status.IpAddress
+
+        index += 1
+    }
+
+    if index == 2{
         fmt.Println("Both players are finsied!")
         //Send the boatState to each player, reset FinishedMiniGame
-        _, _ = databaseConnection.Query("UPDATE boatState SET FinishedMiniGame = 0;")
+        _, _ = databaseConnection.Query("UPDATE boatState SET FinishedMiniGame = 0 WHERE IpAddress = \""+ipAddresses[0]+"\" OR IpAddress = \""+ipAddresses[1]+"\";")
 
         //Find all connections and get the conn value
         dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
