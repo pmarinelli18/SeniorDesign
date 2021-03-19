@@ -256,7 +256,7 @@ func GetBoatState(ipAddress *net.TCPConn){
             "p2UserName": boatState.opponentUserName,
         },
         "boatHealth": map[string]interface{}{
-            "p1Heath": boatState.shipHealth,
+            "p1health": boatState.shipHealth,
             "p2Health": boatState.opponentHealth,
         },
         "stateOfBoatFeatures": map[string]interface{}{
