@@ -85,7 +85,7 @@ func EndGame(ipAddress *net.TCPConn) {
 func InitNewUser(userName string, ipAddress *net.TCPConn){
     //Init the user's game
         _, _ = databaseConnection.Query("INSERT INTO BoatState(IpAddress, UserName) Values (\""+ ipAddress.RemoteAddr().String() + "\", \""+ userName + "\");")
-        getUsers()
+        getUsers(ipAddress)
 }
 
 func clearAccountsTable() {
@@ -196,8 +196,8 @@ func StartGame(){
     SendAnimationDataToHardware()
 }
 
-func getUsers(){
-    dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
+func getUsers(sentAddress *net.TCPConn){
+    dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true ORDER BY ipAddress = \"" + sentAddress.RemoteAddr().String() + "\" DESC;")
     devices := make([]ConnectedDevices, 0)
     userNames := make([]string, 0)
 
@@ -208,12 +208,27 @@ func getUsers(){
         userNames = append(userNames, newDevice.userName)
     }
 
-    mapD := map[string]interface{}{
-        "id": "connectedDevices",
-        "userNames": userNames,
+    var invert = false
+
+    for _, device := range devices {
+        conn := GetConnection(device)
+        if invert && len(userNames) == 2{
+            firstName := userNames[0]
+            secondName := userNames[1]
+            userNames[0] = secondName
+            userNames[1] = firstName
+
+        }
+        invert = true
+
+        mapD := map[string]interface{}{
+            "id": "connectedDevices",
+            "userNames": userNames,
+        }
+        mapB, _ := json.Marshal(mapD)
+        _, _ = conn.Write([]byte(mapB))
     }
-    mapB, _ := json.Marshal(mapD)
-    SendMessageToDevices(mapB, devices)
+    
 }
 func CreateNewAccount(userName string, password string) bool{
     _, err := databaseConnection.Query("INSERT INTO Accounts(userName, password) VALUES (\""+ userName + "\", \"" + password + "\");")
