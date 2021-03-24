@@ -1,7 +1,7 @@
 package connection
 import (
 	"fmt"
-	//"strconv"
+	"strconv"
 	"database/sql"
     _ "github.com/go-sql-driver/mysql"
     "net"
@@ -16,7 +16,7 @@ type Tag struct {
 }
 */
 type LogIn struct {
-    success   int   `json:"success"`
+    success   int   `json:"success"` 
 }
 
 type PlayersFinished struct {
@@ -97,6 +97,20 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 		fmt.Println("Cannon Incoming")
 		_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth - 25 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
 		_, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = NumberOfCannons - 1, FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+		dbConnections, _ := databaseConnection.Query("SELECT ShipHealth from BoatState WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+		var healths [2]string
+		var index = 0
+		for dbConnections.Next() {
+			var boatState BoatState
+			_ = dbConnections.Scan(&boatState.shipHealth)
+			healths[index] = boatState.shipHealth
+			index += 1
+		}
+		n, _ := strconv.Atoi(healths[0])
+		//fmt.Println(n)
+		if n <= 0 {
+			EndGame(ipAddress) //End the game
+		}
 	} else if wep == "2" {
 		fmt.Println("Torpedo Incoming")
 		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 40 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
@@ -111,8 +125,23 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 }
 
 func RepairShip(ipAddress *net.TCPConn) {
-	_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth + 25, FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
-    checkIfBothPlayersAreFinished()
+	dbConnections, _ := databaseConnection.Query("SELECT ShipHealth from BoatState WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+                var healths [2]string
+                var index = 0
+                for dbConnections.Next() {
+                        var boatState BoatState
+                        _ = dbConnections.Scan(&boatState.shipHealth)
+                        healths[index] = boatState.shipHealth
+                        index += 1
+                }
+                n, _ := strconv.Atoi(healths[0])
+                //fmt.Println(n)
+                if n > 75 {
+                         _, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = 100, FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+                } else {
+			_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth + 25, FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+		}
+	checkIfBothPlayersAreFinished()
 }
 
 func HackRadar(ipAddress *net.TCPConn) {
