@@ -77,8 +77,38 @@ func CheckIfValidLogin(userName string, password string) bool{
     }
 }
 
-func EndGame(ipAddress *net.TCPConn) {
+func RemovePlayerFromDB(ipAddress *net.TCPConn) {
     _, _ = databaseConnection.Query("DELETE FROM BoatState WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+} 
+
+func EndGame(ipAddress *net.TCPConn) {
+//Find all connections and get the conn value
+    dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true ORDER BY ShipHealth asc;")
+    var index = 0;
+    for dbConnections.Next() {
+        var newDevice ConnectedDevices
+        _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
+        conn := GetConnection(newDevice)
+        if index == 0{
+            mapD := map[string]interface{}{
+                "id":"gameOver",
+                "endResult":"lost",
+            }
+            mapB, _ := json.Marshal(mapD)
+            _, _ = conn.Write([]byte(mapB))
+            index += 1
+        } else{
+            mapD := map[string]interface{}{
+                "id":"gameOver",
+                "endResult":"won",
+            }
+            mapB, _ := json.Marshal(mapD)
+            _, _ = conn.Write([]byte(mapB))
+        }
+
+        
+
+    }
 }
 
 
@@ -106,10 +136,10 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 			healths[index] = boatState.shipHealth
 			index += 1
 		}
-		n, _ := strconv.Atoi(healths[0])
-		//fmt.Println(n)
-		if n <= 0 {
+		opponentHealth, _ := strconv.Atoi(healths[0])
+		if opponentHealth <= 0 {
 			EndGame(ipAddress) //End the game
+            return
 		}
 	} else if wep == "2" {
 		fmt.Println("Torpedo Incoming")

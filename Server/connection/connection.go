@@ -131,7 +131,7 @@ func handleRequest(connection *net.TCPConn) {
 		if err != nil {
 			fmt.Println("Error reading:", err.Error())
 			fmt.Println(connection.RemoteAddr().String(), " has disconnected")
-			EndGame(connection)
+			RemovePlayerFromDB(connection)
 			DeleteConnection(connection.RemoteAddr().String())
 			return
 		}
