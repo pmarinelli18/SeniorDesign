@@ -145,15 +145,12 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 		}
 		opponentHealth, _ := strconv.Atoi(healths[0])
 
-        fmt.Println(p1Address)
         if (ipAddress.RemoteAddr().String() == p1Address){
             p1JustShotCannon = true;
         } else {
             p2JustShotCannon = true;
         }
 
-        fmt.Println(p1JustShotCannon)
-        fmt.Println(p2JustShotCannon)
 
 		if opponentHealth <= 0 {
 			EndGame(ipAddress) //End the game
@@ -163,6 +160,7 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 		fmt.Println("Torpedo Incoming")
 		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 40 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
 		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoState = \"Cooldown\", FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+        AddPendingTorpedoAttack(ipAddress.RemoteAddr().String())
 	} else if wep == "3" {
                 fmt.Println("Mounted MG Incoming")
                  _, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth - 10 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
@@ -230,6 +228,7 @@ func checkIfBothPlayersAreFinished(){
 
     if index == 2{
         fmt.Println("Both players are finsied!")
+        RoundEndedCheckForTorpedo()
         //Send the boatState to each player, reset FinishedMiniGame
         _, _ = databaseConnection.Query("UPDATE boatState SET FinishedMiniGame = 0 WHERE IpAddress = \""+ipAddresses[0]+"\" OR IpAddress = \""+ipAddresses[1]+"\";")
 
@@ -323,7 +322,6 @@ func GetBoatState(ipAddress *net.TCPConn){
     
     var boatState BoatState
     _ = boatStateResult.Scan(&boatState.navigationPosition, &boatState.radarState, &boatState.shipHealth, &boatState.numberOfCannons, &boatState.torpedoState, &boatState.opponentHealth, &boatState.opponentUserName, &boatState.userName)
-    fmt.Println(boatState.shipHealth)
     cannonState := "Enabled"
     if boatState.numberOfCannons == "0"{
         cannonState = "Reloading"
@@ -367,8 +365,6 @@ func SendAnimationDataToHardware(){
         healths[index] = boatState.shipHealth
         index += 1
     }
-    fmt.Println(p1JustShotCannon)
-    fmt.Println(p2JustShotCannon)
 
 
     mapD := map[string]interface{}{
@@ -384,8 +380,6 @@ func SendAnimationDataToHardware(){
             "shotCanon": p2JustShotCannon,
         },
     }
-
-    fmt.Println(mapD)
 
     p1JustShotCannon = false;
     p2JustShotCannon = false;
@@ -423,8 +417,6 @@ func SendPlayerNamesToHardWare(){
 
     p1Address = addresses[0]
     p2Address = addresses[1]
-
-    fmt.Println(p1Address)
 
 
     mapB, _ := json.Marshal(mapD)
