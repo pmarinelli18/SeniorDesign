@@ -30,6 +30,12 @@ func RoundEndedCheckForTorpedo(){
     			fmt.Println("Opponent dodged attack!")
     		}
         }
+
+        //It has been one turn since the torpedo hit or missed the other boat. Reenable it
+        if attack.roundToMakeAttack + 1 == currentRoundNumber {
+        	fmt.Println("Reenable the torpedo!")
+       		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoState = \"Standby\", FinishedMiniGame = 1 WHERE IpAddress = \""+ attack.playerWhoShotAddress + "\";")
+		}
     }
 
 	fmt.Print("Just finished round ")
@@ -39,6 +45,8 @@ func RoundEndedCheckForTorpedo(){
 
 func AddPendingTorpedoAttack(addressOfAttacker string){
 	//Change 1 to allow users more than 1 turn to navigate away
+
+	//If the opponent has their radar enbaled, let them know they have an incoming torpedo!
 
 	//get opponents position
 	boatStateResult := databaseConnection.QueryRow("SELECT navigationPosition from BoatState where IpAddress != \""+ addressOfAttacker + "\";")

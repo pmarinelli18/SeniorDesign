@@ -107,10 +107,9 @@ func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 		FireWeapon(wep,connection)
 		fmt.Println("Attack landed")
 		return
-	} else if  len(splitPath) > 1 && splitPath[1] == "navigation" && len(parameters["pos"]) > 0 {
+	} else if  len(splitPath) > 1 && splitPath[1] == "navigation" {
         fmt.Println("Changing position")
-		var pos string = parameters["pos"][0]
-		ChangePosition(pos,connection)
+		ChangePosition(connection)
 		return
 	} else if  len(splitPath) > 1 && splitPath[1] == "hackRadar" {
         fmt.Println("Disabling Radar")

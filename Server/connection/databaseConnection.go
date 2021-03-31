@@ -6,6 +6,7 @@ import (
     _ "github.com/go-sql-driver/mysql"
     "net"
     "encoding/json"
+    "math/rand"
 )
 
 var databaseConnection *sql.DB 
@@ -202,9 +203,9 @@ func FixRadar(ipAddress *net.TCPConn) {
     checkIfBothPlayersAreFinished()
 }
 
-func ChangePosition(pos string,ipAddress *net.TCPConn) {
+func ChangePosition(ipAddress *net.TCPConn) {
     _, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
-	_, _ = databaseConnection.Query("UPDATE BoatState SET navigationPosition = " + pos + " WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+	_, _ = databaseConnection.Query("UPDATE BoatState SET navigationPosition = " + strconv.Itoa(rand.Intn(100)) + " WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
     checkIfBothPlayersAreFinished()
 }
 
