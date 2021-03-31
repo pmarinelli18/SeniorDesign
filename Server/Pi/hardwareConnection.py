@@ -3,14 +3,24 @@ import json
 #import RPi.GPIO as GPIO
 import time
 
-#from Motor import *
+#from RadarMotor import *
+#from CannonMotor import *
+#from DotMatrix import *
 
 
 import threading
 #GPIO.setwarnings(False)
 #1 is the pin it is connected to
-#p1RadarMotor = Motor(5)
-#p2RadarMotor = Motor(??)
+#p1RadarMotor = RadarMotor(5)
+#p2RadarMotor = RadarMotor(??)
+
+#p1CannonMotor = CannonMotor(??)
+#p2CannonMotor = CannonMotor(??)
+
+#p1DotMatrix = DotMatrix(??)
+#p2DotMatrix = DotMatrix(??)
+
+
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -48,21 +58,26 @@ while 1:
 
 		if (player1["shotCanon"] == True):
 			print("Player 1 shot canon")
+			#p1CannonMotor.startSpinningMotor()
 
 		if (player2["shotCanon"] == True):
 			print("Player 2 shot canon")
+			#p2CannonMotor.startSpinningMotor()
 
 
 
 	if (dataToParse["id"] == "displayUserNames"):
 		print("Player 1 name: " + dataToParse["player1"])
 		print("Player 2 name: " + dataToParse["player2"])
+		#p1DotMatrix.displayUserName(dataToParse["player1"])
+		#p2DotMatrix.displayUserName(dataToParse["player2"])
+
 s.close()
 
 
 #effects:
 #Damage on LED
-#Radar spin or not
+#Radar spin or not 
 #Cannon shoot back and forth a few times
 #Torpedo LEDs
 

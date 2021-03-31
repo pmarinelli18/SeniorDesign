@@ -5,7 +5,7 @@ import threading
 import RPi.GPIO as GPIO 
 import time
 
-class Motor():
+class RadarMotor():
 
 	global stop
 	def __init__(self, stepPin):
@@ -50,3 +50,5 @@ class Motor():
 		self.stop_threads = True
 		print("Stopping spin")
 		self.t1.join() 
+
+		
