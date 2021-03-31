@@ -424,5 +424,22 @@ func SendPlayerNamesToHardWare(){
     SendMessageToHardware(mapB)
 }
 
+func SendIncomingTorpedoToHardware(addressOfAttacker string){
+    var playerWhoIsGettingAttacked = "p1"
+    if (addressOfAttacker == p1Address){
+        playerWhoIsGettingAttacked = "p2"
+    }
+
+
+
+    mapD := map[string]interface{}{
+        "id": "incomingTorpedo",
+        "headingTowards": playerWhoIsGettingAttacked,
+    }
+    mapB, _ := json.Marshal(mapD)
+    SendMessageToHardware(mapB)
+
+}
+
 
 

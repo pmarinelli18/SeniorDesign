@@ -47,13 +47,17 @@ func AddPendingTorpedoAttack(addressOfAttacker string){
 	//Change 1 to allow users more than 1 turn to navigate away
 
 	//If the opponent has their radar enbaled, let them know they have an incoming torpedo!
-
 	//get opponents position
-	boatStateResult := databaseConnection.QueryRow("SELECT navigationPosition from BoatState where IpAddress != \""+ addressOfAttacker + "\";")
+	boatStateResult := databaseConnection.QueryRow("SELECT navigationPosition, RadarState radarState from BoatState where IpAddress != \""+ addressOfAttacker + "\";")
     var opponentBoatState BoatState
-    _ = boatStateResult.Scan(&opponentBoatState.navigationPosition)
+    _ = boatStateResult.Scan(&opponentBoatState.navigationPosition, &opponentBoatState.radarState)
 
 	pendingTorpedoAttacks = append(pendingTorpedoAttacks, TorpedoHit{currentRoundNumber + 1, addressOfAttacker, opponentBoatState.navigationPosition})
+
+	//Alert opponent that they are getting attacked.
+	if (opponentBoatState.radarState == "Enabled"){
+		SendIncomingTorpedoToHardware(addressOfAttacker)
+	}
 }
 
 

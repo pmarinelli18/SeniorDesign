@@ -72,6 +72,12 @@ while 1:
 		#p1DotMatrix.displayUserName(dataToParse["player1"])
 		#p2DotMatrix.displayUserName(dataToParse["player2"])
 
+	if (dataToParse["id"] == "incomingTorpedo"):
+		if (dataToParse["headingTowards"] == "p1"):
+			print("Torpedo is coming towards player 1")
+		else:
+			print("Torpedo is coming towards player 2")			
+
 s.close()
 
 
