@@ -10,6 +10,12 @@ import (
 
 var databaseConnection *sql.DB 
 
+var p1Address = ""
+var p2Address = ""
+
+var p1JustShotCannon = false
+var p2JustShotCannon = false
+
 /*
 type Tag struct {
     userName   string    `json:"userName"`
@@ -37,6 +43,7 @@ type BoatState struct {
     opponentHealth   string
     opponentUserName   string
     userName     string
+    ipAddress    string
 }
 
 func MakeDatabaseConnection(){
@@ -137,6 +144,17 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 			index += 1
 		}
 		opponentHealth, _ := strconv.Atoi(healths[0])
+
+        fmt.Println(p1Address)
+        if (ipAddress.RemoteAddr().String() == p1Address){
+            p1JustShotCannon = true;
+        } else {
+            p2JustShotCannon = true;
+        }
+
+        fmt.Println(p1JustShotCannon)
+        fmt.Println(p2JustShotCannon)
+
 		if opponentHealth <= 0 {
 			EndGame(ipAddress) //End the game
             return
@@ -287,6 +305,8 @@ func getUsers(sentAddress *net.TCPConn){
         mapB, _ := json.Marshal(mapD)
         _, _ = conn.Write([]byte(mapB))
     }
+
+    SendPlayerNamesToHardWare()
     
 }
 func CreateNewAccount(userName string, password string) bool{
@@ -334,7 +354,7 @@ func GetBoatState(ipAddress *net.TCPConn){
 
 func SendAnimationDataToHardware(){
     //Find all connections and get the conn value
-    dbConnections, _ := databaseConnection.Query("Select RadarState radarState, ShipHealth shipHealth from BoatState where GameActive = true;")
+    dbConnections, _ := databaseConnection.Query("Select RadarState radarState, ShipHealth shipHealth from BoatState where GameActive = true ORDER BY id;")
     
     var radarStates [2]string
     var healths [2]string
@@ -347,17 +367,65 @@ func SendAnimationDataToHardware(){
         healths[index] = boatState.shipHealth
         index += 1
     }
+    fmt.Println(p1JustShotCannon)
+    fmt.Println(p2JustShotCannon)
+
 
     mapD := map[string]interface{}{
+        "id": "FinishedMiniGame",
         "player1": map[string]interface{}{
             "health": healths[0],
             "radarState": radarStates[0],
+            "shotCanon": p1JustShotCannon,
         },
         "player2": map[string]interface{}{
             "health": healths[1],
             "radarState": radarStates[1],
+            "shotCanon": p2JustShotCannon,
         },
     }
+
+    fmt.Println(mapD)
+
+    p1JustShotCannon = false;
+    p2JustShotCannon = false;
+
+    mapB, _ := json.Marshal(mapD)
+    SendMessageToHardware(mapB)
+}
+
+func SendPlayerNamesToHardWare(){
+    //Find all connections and get the conn value
+    dbConnections, _ := databaseConnection.Query("Select UserName userName, IpAddress ipAddress from BoatState where GameActive = true ORDER BY id;")
+    
+    var userNames [2]string
+    userNames[0] = ""
+    userNames[1] = ""
+
+    var addresses [2]string
+    addresses[0] = ""
+    addresses[1] = ""
+
+    var index = 0
+    for dbConnections.Next() {
+        var boatState BoatState
+        _ = dbConnections.Scan(&boatState.userName, &boatState.ipAddress)
+        userNames[index] = boatState.userName
+        addresses[index] = boatState.ipAddress
+        index += 1
+    }
+
+    mapD := map[string]interface{}{
+        "id": "displayUserNames",
+        "player1": userNames[0],
+        "player2": userNames[1],
+    }
+
+    p1Address = addresses[0]
+    p2Address = addresses[1]
+
+    fmt.Println(p1Address)
+
 
     mapB, _ := json.Marshal(mapD)
     SendMessageToHardware(mapB)
