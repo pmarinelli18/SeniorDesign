@@ -2,6 +2,7 @@ package connection
 
 import (
 	"fmt"
+	"strconv"
 )
 
 //Number of rounds there have been in the game. Used to track progress over time.
@@ -26,7 +27,23 @@ func RoundEndedCheckForTorpedo(){
 
     		if (attack.currentpositionOfOpponent == opponentBoatState.navigationPosition){
     			fmt.Println("Actually do damage now!")
-    		} else{
+			_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth - 40 WHERE IpAddress != \""+ attack.playerWhoShotAddress + "\" LIMIT 1;")
+    			_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoState = Standby WHERE IpAddress != \""+ attack.playerWhoShotAddress + "\" LIMIT 1;")
+			dbConnections, _ := databaseConnection.Query("SELECT ShipHealth from BoatState WHERE IpAddress != \""+ attack.playerWhoShotAddress + "\" LIMIT 1;")
+                	var healths [2]string
+                	var index = 0
+                	for dbConnections.Next() {
+                        	var boatState BoatState
+                        	_ = dbConnections.Scan(&boatState.shipHealth)
+                        	healths[index] = boatState.shipHealth
+                        	index += 1
+                	}
+                	opponentHealth, _ := strconv.Atoi(healths[0])
+			if opponentHealth <= 0 {
+                        	//EndGame(attack.playerWhoShotAddress) //Needs to be fixed
+            			return
+                	}
+		} else{
     			fmt.Println("Opponent dodged attack!")
     		}
         }
