@@ -89,7 +89,7 @@ func RemovePlayerFromDB(ipAddress *net.TCPConn) {
     _, _ = databaseConnection.Query("DELETE FROM BoatState WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
 } 
 
-func EndGame(ipAddress *net.TCPConn) {
+func EndGame() {
 //Find all connections and get the conn value
     dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true ORDER BY ShipHealth asc;")
     var index = 0;
@@ -154,7 +154,7 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 
 
 		if opponentHealth <= 0 {
-			EndGame(ipAddress) //End the game
+			EndGame() //End the game
             return
 		}
 	} else if wep == "2" {
