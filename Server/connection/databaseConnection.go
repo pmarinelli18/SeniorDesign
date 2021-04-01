@@ -229,11 +229,11 @@ func checkIfBothPlayersAreFinished(){
 
     if index == 2{
         fmt.Println("Both players are finsied!")
-	_, _ = databaseConnection.Query("UPDATE boatState SET NumberOfCannons = NumberOfCannons + 1 WHERE IpAddress = \""+ipAddresses[0]+"\";")
-        _, _ = databaseConnection.Query("UPDATE boatState SET NumberOfCannons = NumberOfCannons + 1 WHERE IpAddress = \""+ipAddresses[1]+"\";")
+	_, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = NumberOfCannons + 1 WHERE IpAddress = \""+ipAddresses[0]+"\";")
+        _, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = NumberOfCannons + 1 WHERE IpAddress = \""+ipAddresses[1]+"\";")
 	RoundEndedCheckForTorpedo()
         //Send the boatState to each player, reset FinishedMiniGame
-        _, _ = databaseConnection.Query("UPDATE boatState SET FinishedMiniGame = 0 WHERE IpAddress = \""+ipAddresses[0]+"\" OR IpAddress = \""+ipAddresses[1]+"\";")
+        _, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 0 WHERE IpAddress = \""+ipAddresses[0]+"\" OR IpAddress = \""+ipAddresses[1]+"\";")
 
         //Find all connections and get the conn value
         dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")

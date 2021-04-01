@@ -1,30 +1,30 @@
 import socket
 import json
-#import RPi.GPIO as GPIO
+import RPi.GPIO as GPIO
 import time
 
-#from RadarMotor import *
-#from CannonMotor import *
-#from DotMatrix import *
+from RadarMotor import *
+from CannonMotor import *
+from DotMatrix import *
 
 
 import threading
-#GPIO.setwarnings(False)
+GPIO.setwarnings(False)
 #1 is the pin it is connected to
-#p1RadarMotor = RadarMotor(5)
-#p2RadarMotor = RadarMotor(??)
+p1RadarMotor = RadarMotor(5)
+# p2RadarMotor = RadarMotor(??)
 
-#p1CannonMotor = CannonMotor(??)
-#p2CannonMotor = CannonMotor(??)
+p1CannonMotor = CannonMotor(37)
+# p2CannonMotor = CannonMotor(??)
 
-#p1DotMatrix = DotMatrix(??)
-#p2DotMatrix = DotMatrix(??)
+p1DotMatrix = DotMatrix(0)
+# p2DotMatrix = DotMatrix(??)
 
 
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ("localhost", 80)
+server_address = ("10.20.0.24", 82)
 s.connect(server_address)
 s.send("hardwareConnection".encode())
 
@@ -45,10 +45,10 @@ while 1:
 
 		if (player1["radarState"] == "Enabled"):
 			print("Player 1 Start spinning motor")
-			#p1RadarMotor.startSpinningMotor()
+			p1RadarMotor.startSpinningMotor()
 		else:
 			print("Player 1 Stop spinning")
-			#p1RadarMotor.stopMotorJog()
+			p1RadarMotor.stopMotorJog()
 		if (player2["radarState"] == "Enabled"):
 			print("Player 2 Start spinning motor")
 			#p2RadarMotor.startSpinningMotor()
@@ -58,19 +58,19 @@ while 1:
 
 		if (player1["shotCanon"] == True):
 			print("Player 1 shot canon")
-			#p1CannonMotor.startSpinningMotor()
+			p1CannonMotor.startSpinningMotor()
 
 		if (player2["shotCanon"] == True):
 			print("Player 2 shot canon")
-			#p2CannonMotor.startSpinningMotor()
+			# p2CannonMotor.startSpinningMotor()
 
 
 
 	if (dataToParse["id"] == "displayUserNames"):
 		print("Player 1 name: " + dataToParse["player1"])
 		print("Player 2 name: " + dataToParse["player2"])
-		#p1DotMatrix.displayUserName(dataToParse["player1"])
-		#p2DotMatrix.displayUserName(dataToParse["player2"])
+		p1DotMatrix.displayUserName(dataToParse["player1"])
+		# p2DotMatrix.displayUserName(dataToParse["player2"])
 
 	if (dataToParse["id"] == "incomingTorpedo"):
 		if (dataToParse["headingTowards"] == "p1"):

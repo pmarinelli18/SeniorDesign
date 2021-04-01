@@ -5,7 +5,7 @@ import threading
 import RPi.GPIO as GPIO 
 import time
 
-class RadarMotor():
+class CannonMotor():
 
 	global stop
 	def __init__(self, stepPin):

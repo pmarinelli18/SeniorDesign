@@ -10,8 +10,11 @@ from luma.core.legacy.font import proportional, CP437_FONT, LCD_FONT
 
 class DotMatrix():
 
+	device = None
+	virtual = None
 	#portNumber was 0 during testing
-	def __init__(portNumber):
+	def __init__(self, portNumber):
+		global virtual
 		super().__init__()
 		serial = spi(port=portNumber, device=0, gpio=noop())
 		device = max7219(serial, width=32, height=8, block_orientation=-90)
@@ -19,6 +22,7 @@ class DotMatrix():
 		virtual = viewport(device, width=32, height=16)
 
 
-	def displayUserName(userName):
-	    with canvas(virtual) as draw:
-            text(draw, (0, 1), userName, fill="white", font=proportional(CP437_FONT))
+	def displayUserName(self, userName):
+		global virtual
+		with canvas(virtual) as draw:
+            		text(draw, (0, 1), userName, fill="white", font=proportional(CP437_FONT))

@@ -26,9 +26,9 @@ class RadarMotor():
 		#self.pwm = GPIO.PWM(5, 50)
 		#self.pwm.start(0)
 		while True:
-			for direction in range(10, 170, 10):
+			for direction in range(10, 170, 1):
 				self.setDirection(direction)
-			for direction in range(170, 10, -10):
+			for direction in range(170, 10, -1):
 				self.setDirection(direction)
 			print("Spin")
 			#sleep(5);
