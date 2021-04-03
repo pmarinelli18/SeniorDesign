@@ -14,6 +14,8 @@ class RadarMotor():
 		GPIO.setup(stepPin, GPIO.OUT)
 		self.pwm = GPIO.PWM(stepPin, 50)		#PWM is set to 50 HZ- from spec
 		self.pwm.start(0)
+		self.t1 = None
+		self.isSpinning = False
 
 	def setDirection(self, direction):
 		a=10
@@ -39,16 +41,18 @@ class RadarMotor():
 				print("Done!")
 				break
 
-
-	
 	def startSpinningMotor(self):
 		self.stop_threads = False
-		self.t1 = threading.Thread(target = self.spinMotor, args =(lambda : self.stop_threads,)) 
-		self.t1.start() 
+		if (!self.isSpinning):
+			self.isSpinning = True
+			self.t1 = threading.Thread(target = self.spinMotor, args =(lambda : self.stop_threads,)) 
+			self.t1.start() 
   
 	def stopMotorJog(self):
-		self.stop_threads = True
-		print("Stopping spin")
-		self.t1.join() 
+		if (self.t1 != None):
+			self.stop_threads = True
+			print("Stopping spin")
+			self.t1.join() 
+			self.isSpinning = False
 
 		
