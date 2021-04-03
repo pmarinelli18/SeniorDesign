@@ -14,6 +14,7 @@ class CannonMotor():
 		GPIO.setup(stepPin, GPIO.OUT)
 		self.pwm = GPIO.PWM(stepPin, 50)		#PWM is set to 50 HZ- from spec
 		self.pwm.start(0)
+		self.setDirection(10)
 
 	def setDirection(self, direction):
 		a=10

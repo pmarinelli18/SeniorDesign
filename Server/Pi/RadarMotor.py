@@ -16,6 +16,7 @@ class RadarMotor():
 		self.pwm.start(0)
 		self.t1 = None
 		self.isSpinning = False
+		self.setDirection(10)
 
 	def setDirection(self, direction):
 		a=10
