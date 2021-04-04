@@ -43,6 +43,9 @@ while 1:
 		
 		print("\n")
 
+		p1DotMatrix.updateHalth(player1["health"])
+		#p2DotMatrix.updateHalth(player2["health"])
+
 		if (player1["radarState"] == "Enabled"):
 			print("Player 1 Start spinning motor")
 			p1RadarMotor.startSpinningMotor()
