@@ -162,32 +162,30 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 40 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
 		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoState = \"Cooldown\", FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
         AddPendingTorpedoAttack(ipAddress.RemoteAddr().String())
-	} else if wep == "3" {
-                fmt.Println("Mounted MG Incoming")
-                 _, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth - 10 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
 	} else {
 		fmt.Println("Invalid Weapon Type")
 	}
     checkIfBothPlayersAreFinished()
 }
 
-func RepairShip(ipAddress *net.TCPConn) {
+func RepairShip(value string, ipAddress *net.TCPConn) {
+	temp, _ := strconv.Atoi(value)
 	dbConnections, _ := databaseConnection.Query("SELECT ShipHealth from BoatState WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
-                var healths [2]string
-                var index = 0
-                for dbConnections.Next() {
-                        var boatState BoatState
-                        _ = dbConnections.Scan(&boatState.shipHealth)
-                        healths[index] = boatState.shipHealth
-                        index += 1
-                }
-                n, _ := strconv.Atoi(healths[0])
-                //fmt.Println(n)
-                if n > 75 {
-                         _, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = 100, FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
-                } else {
-			_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth + 25, FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
-		}
+	var healths [2]string
+	var index = 0
+ 	for dbConnections.Next() {
+		var boatState BoatState
+		_ = dbConnections.Scan(&boatState.shipHealth)
+		healths[index] = boatState.shipHealth
+		index += 1
+	}
+	n, _ := strconv.Atoi(healths[0])
+	if n > (100 - temp) {
+		_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = 100, FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+		fmt.Println("Repaired to max health")
+	} else {
+		_, _ = databaseConnection.Query("UPDATE BoatState SET shipHealth = shipHealth + "  +strconv.Itoa(temp) + ", FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
+	}
 	checkIfBothPlayersAreFinished()
 }
 

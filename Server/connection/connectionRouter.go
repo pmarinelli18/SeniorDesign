@@ -98,9 +98,10 @@ func gameRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 	if  len(splitPath) > 1 && splitPath[1] == "recordResult" && len(parameters["miniGame"]) > 0 && len(parameters["score"]) > 0{
 		fmt.Println("Saving game result")		
 		//result = CheckIfValidLogin(parameters["userName"][0], parameters["password"][0])
-	} else if len(splitPath) > 1 && splitPath[1] == "repairShip" {
+	} else if len(splitPath) > 1 && splitPath[1] == "repairShip" && len(parameters["healthValue"]) > 0 {
+		var health string = parameters["healthValue"][0]
 		fmt.Println("Repairing ship")
-		RepairShip(connection)
+		RepairShip(health,connection)
 		return
 	} else if  len(splitPath) > 1 && splitPath[1] == "hitConfirm" && len(parameters["weaponType"]) > 0 {
 		var wep string = parameters["weaponType"][0]
