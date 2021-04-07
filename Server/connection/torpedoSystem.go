@@ -74,6 +74,11 @@ func AddPendingTorpedoAttack(addressOfAttacker string){
 	if (opponentBoatState.radarState == "Enabled"){
 		SendIncomingTorpedoToHardware(addressOfAttacker)
 	}
+    if (addressOfAttacker == p1Address){
+        p1JustShotTorpedo = true
+    } else{
+         p2JustShotTorpedo = true
+    }
 }
 
 

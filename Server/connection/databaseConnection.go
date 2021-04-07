@@ -17,6 +17,9 @@ var p2Address = ""
 var p1JustShotCannon = false
 var p2JustShotCannon = false
 
+var p1JustShotTorpedo = false
+var p2JustShotTorpedo = false
+
 /*
 type Tag struct {
     userName   string    `json:"userName"`
@@ -327,6 +330,29 @@ func GetBoatState(ipAddress *net.TCPConn){
     if boatState.numberOfCannons == "0"{
         cannonState = "Reloading"
     }
+
+    var incomingTorpedo = false;
+    if (boatState.radarState == "Enabled"){
+        //Check for incoming torpedos
+        var opponentAddress = p1Address
+        if (p1Address == ipAddress.RemoteAddr().String()){
+            opponentAddress = p2Address
+        }
+        //Check if opponent shot a torpedo
+        if opponentAddress == p1Address{
+            incomingTorpedo = p1JustShotTorpedo
+        } else{
+            incomingTorpedo = p2JustShotTorpedo
+        }
+    }
+
+    //Reset opponents torpedo var
+    if (p1Address == ipAddress.RemoteAddr().String()){
+        p2JustShotTorpedo = false
+    } else{
+        p1JustShotTorpedo = false
+    }
+
     mapD := map[string]interface{}{
         "id":"boatState",
         "userName": map[string]interface{}{
@@ -344,6 +370,7 @@ func GetBoatState(ipAddress *net.TCPConn){
                 "state": cannonState,
                 "numberOfCannons": boatState.numberOfCannons,
             },
+            "incomingTorpedo": incomingTorpedo,
         },
         "boatPosition": boatState.navigationPosition,
     }
