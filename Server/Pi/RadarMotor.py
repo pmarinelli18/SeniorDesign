@@ -17,6 +17,7 @@ class RadarMotor():
 		self.t1 = None
 		self.isSpinning = False
 		self.setDirection(10)
+		self.pwm.ChangeDutyCycle(0)
 
 	def setDirection(self, direction):
 		a=10
@@ -44,7 +45,7 @@ class RadarMotor():
 
 	def startSpinningMotor(self):
 		self.stop_threads = False
-		if (!self.isSpinning):
+		if (not self.isSpinning):
 			self.isSpinning = True
 			self.t1 = threading.Thread(target = self.spinMotor, args =(lambda : self.stop_threads,)) 
 			self.t1.start() 

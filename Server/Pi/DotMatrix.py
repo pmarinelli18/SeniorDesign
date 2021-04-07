@@ -19,10 +19,10 @@ class DotMatrix():
 	#portNumber was 0 during testing
 	def __init__(self, portNumber):
 		super().__init__()
-		serial = spi(port=portNumber, device=0, gpio=noop())
+		serial = spi(port=0, device=portNumber, gpio=noop())
 		self.device = max7219(serial, width=32, height=8, block_orientation=-90)
 		self.device.contrast(5)
-		self.virtual = viewport(device, width=32, height=8)
+		self.virtual = viewport(self.device, width=32, height=8)
 		self.damagedLEDs = []
 
 
