@@ -88,6 +88,23 @@ func CheckIfValidLogin(userName string, password string) bool{
     }
 }
 
+func CheckIfUser(userName string, password string) bool{
+	results, err := databaseConnection.Query("SELECT Count(*) success from BoatState where userName = \""+ userName + "\";")
+    if err != nil {
+        return false
+    }
+
+    var logIn LogIn
+    results.Next()
+    err = results.Scan(&logIn.success)
+
+    if logIn.success == 1{
+        return true
+    } else{
+        return false
+    }
+}
+
 func RemovePlayerFromDB(ipAddress *net.TCPConn) {
     _, _ = databaseConnection.Query("DELETE FROM BoatState WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
 } 
