@@ -159,7 +159,7 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 
 		if opponentHealth <= 0 {
 			//EndGame() //End the game
-            return
+           // return
 		}
 	} else if wep == "2" {
 		fmt.Println("Torpedo Incoming")
@@ -229,6 +229,9 @@ func checkIfBothPlayersAreFinished(){
         index += 1
     }
 
+    fmt.Println("IP Address index is: ")
+    fmt.Println(index)
+
     if index == 2{
         fmt.Println("Both players are finsied!")
 	_, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = NumberOfCannons + 1 WHERE IpAddress = \""+ipAddresses[0]+"\";")
@@ -237,24 +240,33 @@ func checkIfBothPlayersAreFinished(){
         //Send the boatState to each player, reset FinishedMiniGame
         _, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 0 WHERE IpAddress = \""+ipAddresses[0]+"\" OR IpAddress = \""+ipAddresses[1]+"\";")
 
-        //Find all connections and get the conn value
-        dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName, ShipHealth shipHealth from BoatState where GameActive = true;")
+
+        //Is the game over?
+        dbConnections, _ := databaseConnection.Query("Select ShipHealth shipHealth from BoatState where GameActive = true;")
         for dbConnections.Next() {
             var newDevice ConnectedDevices
-            _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName,  &newDevice.shipHealth)
+            _ = dbConnections.Scan(&newDevice.shipHealth)
 
             healthInt, _ := strconv.Atoi(newDevice.shipHealth);
             if healthInt <= 0 {
                 EndGame()
-            } else{
-                conn := GetConnection(newDevice)
+                return
+            } 
+        }
 
-                mapD := map[string]interface{}{
-                    "id":"continueToInGameScreen",
-                }
-                mapB, _ := json.Marshal(mapD)
-                _, _ = conn.Write([]byte(mapB))
+        //Find all connections and get the conn value
+        dbConnections, _ = databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
+        for dbConnections.Next() {
+            var newDevice ConnectedDevices
+            _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
+    
+            conn := GetConnection(newDevice)
+
+            mapD := map[string]interface{}{
+                "id":"continueToInGameScreen",
             }
+            mapB, _ := json.Marshal(mapD)
+            _, _ = conn.Write([]byte(mapB))
         }
 
         SendAnimationDataToHardware()

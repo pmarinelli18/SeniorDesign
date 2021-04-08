@@ -40,7 +40,7 @@ func RoundEndedCheckForTorpedo(){
         	opponentHealth, _ := strconv.Atoi(healths[0])
 			if opponentHealth <= 0 {
                 //EndGame() //Needs to be fixed
-    			return
+    			//return
         	}
 		} else{
     			fmt.Println("Opponent dodged attack!")
