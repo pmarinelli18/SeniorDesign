@@ -24,7 +24,7 @@ p1DotMatrix = DotMatrix(0)
 
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_address = ("10.20.0.24", 82)
+server_address = ("10.20.0.75", 82)
 s.connect(server_address)
 s.send("hardwareConnection".encode())
 

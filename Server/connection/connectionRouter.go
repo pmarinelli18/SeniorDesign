@@ -87,7 +87,9 @@ func authRouter(splitPath []string, parameters url.Values, connection *net.TCPCo
 
 	if result {
 		resondBack(tag, connection, true)
-		InitNewUser(parameters["userName"][0], connection)
+		if !CheckIfUser(parameters["userName"][0], parameters["password"][0]){
+			InitNewUser(parameters["userName"][0], connection)
+		}
 	} else{
 		resondBack(tag, connection, false)
 	}
