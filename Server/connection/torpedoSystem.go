@@ -39,7 +39,7 @@ func RoundEndedCheckForTorpedo(){
         	}
         	opponentHealth, _ := strconv.Atoi(healths[0])
 			if opponentHealth <= 0 {
-                EndGame() //Needs to be fixed
+                //EndGame() //Needs to be fixed
     			return
         	}
 		} else{

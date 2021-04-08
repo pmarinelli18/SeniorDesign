@@ -36,6 +36,7 @@ type PlayersFinished struct {
 type ConnectedDevices struct {
     ipAddress   string
     userName   string
+    shipHealth string
 }
 
 type BoatState struct {
@@ -157,7 +158,7 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 
 
 		if opponentHealth <= 0 {
-			EndGame() //End the game
+			//EndGame() //End the game
             return
 		}
 	} else if wep == "2" {
@@ -237,18 +238,23 @@ func checkIfBothPlayersAreFinished(){
         _, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 0 WHERE IpAddress = \""+ipAddresses[0]+"\" OR IpAddress = \""+ipAddresses[1]+"\";")
 
         //Find all connections and get the conn value
-        dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName from BoatState where GameActive = true;")
+        dbConnections, _ := databaseConnection.Query("Select IpAddress ipAddress, UserName userName, ShipHealth shipHealth from BoatState where GameActive = true;")
         for dbConnections.Next() {
             var newDevice ConnectedDevices
-            _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName)
-            conn := GetConnection(newDevice)
+            _ = dbConnections.Scan(&newDevice.ipAddress, &newDevice.userName,  &newDevice.shipHealth)
 
-            mapD := map[string]interface{}{
-                "id":"continueToInGameScreen",
+            healthInt, _ := strconv.Atoi(newDevice.shipHealth);
+            if healthInt <= 0 {
+                EndGame()
+            } else{
+                conn := GetConnection(newDevice)
+
+                mapD := map[string]interface{}{
+                    "id":"continueToInGameScreen",
+                }
+                mapB, _ := json.Marshal(mapD)
+                _, _ = conn.Write([]byte(mapB))
             }
-            mapB, _ := json.Marshal(mapD)
-            _, _ = conn.Write([]byte(mapB))
-
         }
 
         SendAnimationDataToHardware()
