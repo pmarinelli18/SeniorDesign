@@ -180,7 +180,7 @@ func FireWeapon(wep string, ipAddress *net.TCPConn) {
 		}
 	} else if wep == "2" {
 		fmt.Println("Torpedo Incoming")
-		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 40 WHERE IpAddress != \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
+		//_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 40 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\" LIMIT 1;")
 		_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoState = \"Cooldown\", FinishedMiniGame = 1 WHERE IpAddress = \""+ ipAddress.RemoteAddr().String() + "\";")
         AddPendingTorpedoAttack(ipAddress.RemoteAddr().String())
 	} else {
@@ -250,13 +250,55 @@ func checkIfBothPlayersAreFinished(){
     fmt.Println(index)
 
     if index == 2{
+	//If cannon has been fired this turn (player1)
         fmt.Println("Both players are finsied!")
-	_, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = NumberOfCannons + 1 WHERE IpAddress = \""+ipAddresses[0]+"\";")
-        _, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = NumberOfCannons + 1 WHERE IpAddress = \""+ipAddresses[1]+"\";")
-	RoundEndedCheckForTorpedo()
-        //Send the boatState to each player, reset FinishedMiniGame
-        _, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 0 WHERE IpAddress = \""+ipAddresses[0]+"\" OR IpAddress = \""+ipAddresses[1]+"\";")
+	//dbConnections, _ := databaseConnection.Query("SELECT TorpedoDamage from BoatState WHERE IpAddress = \""+ ipAddresses[0] + "\";")
+        //        var temp [2]string
+        //        var index = 0
+        //        for dbConnections.Next() {
+        //                var boatState BoatState
+        //                _ = dbConnections.Scan(&boatState.torpedoDamage)
+        //                temp[index] = boatState.TorpedoDamage
+        //                index += 1
+        //        }
+	//hasFired, _ := strconv.Atoi(temp[0])
+	//Ammo Count (player1)
+	ammoPlayer1, _ := databaseConnection.Query("SELECT NumberOfCannons from BoatState WHERE IpAddress = \""+ ipAddresses[0] + "\";")
+                var ammo [2]string
+                var index = 0
+                for ammoPlayer1.Next() {
+                        var boatState BoatState
+                        _ = ammoPlayer1.Scan(&boatState.numberOfCannons)
+                        ammo[index] = boatState.numberOfCannons
+                        index += 1
+                }
+        num, _ := strconv.Atoi(ammo[0])
+	// Add if hasFired is false 
+	if num == 0 {
+		_, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = 3 WHERE IpAddress = \""+ipAddresses[0]+"\";")
+	}
+	//Ammo count (player2)
+	ammoPlayer2, _ := databaseConnection.Query("SELECT NumberOfCannons from BoatState WHERE IpAddress = \""+ ipAddresses[1] + "\";")
+                var ammo2 [2]string
+                index = 0
+                for ammoPlayer2.Next() {
+                        var boatState BoatState
+                        _ = ammoPlayer2.Scan(&boatState.numberOfCannons)
+                        ammo2[index] = boatState.numberOfCannons
+                        index += 1
+                }
+        num2, _ := strconv.Atoi(ammo2[0])
+        // Add if hasFired is false
+        if num2 == 0 {                
+                _, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = 3 WHERE IpAddress = \""+ipAddresses[1]+"\";")
+        }
 
+	RoundEndedCheckForTorpedo()
+	// RESET THE HAS CANNON FIRED VALUE FOR BOTH PLAYERS
+	//_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 0 WHERE IpAddress = \""+ipAddresses[0]+"\";") //reset
+	//_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 0 WHERE IpAddress = \""+ipAddresses[1]+"\";") //reset
+        //Send the boatState to each player, reset FinishedMiniGame
+	_, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 0 WHERE IpAddress = \""+ipAddresses[0]+"\" OR IpAddress = \""+ipAddresses[1]+"\";")
 
         //Is the game over?
         dbConnections, _ := databaseConnection.Query("Select ShipHealth shipHealth from BoatState where GameActive = true;")
