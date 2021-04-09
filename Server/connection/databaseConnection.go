@@ -250,18 +250,7 @@ func checkIfBothPlayersAreFinished(){
     fmt.Println(index)
 
     if index == 2{
-	//If cannon has been fired this turn (player1)
         fmt.Println("Both players are finsied!")
-	//dbConnections, _ := databaseConnection.Query("SELECT TorpedoDamage from BoatState WHERE IpAddress = \""+ ipAddresses[0] + "\";")
-        //        var temp [2]string
-        //        var index = 0
-        //        for dbConnections.Next() {
-        //                var boatState BoatState
-        //                _ = dbConnections.Scan(&boatState.torpedoDamage)
-        //                temp[index] = boatState.TorpedoDamage
-        //                index += 1
-        //        }
-	//hasFired, _ := strconv.Atoi(temp[0])
 	//Ammo Count (player1)
 	ammoPlayer1, _ := databaseConnection.Query("SELECT NumberOfCannons from BoatState WHERE IpAddress = \""+ ipAddresses[0] + "\";")
                 var ammo [2]string
@@ -273,8 +262,7 @@ func checkIfBothPlayersAreFinished(){
                         index += 1
                 }
         num, _ := strconv.Atoi(ammo[0])
-	// Add if hasFired is false 
-	if num == 0 {
+	if num == 0 && p1JustShotCannon == false {
 		_, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = 3 WHERE IpAddress = \""+ipAddresses[0]+"\";")
 	}
 	//Ammo count (player2)
@@ -288,15 +276,10 @@ func checkIfBothPlayersAreFinished(){
                         index += 1
                 }
         num2, _ := strconv.Atoi(ammo2[0])
-        // Add if hasFired is false
-        if num2 == 0 {                
+        if num2 == 0 && p2JustShotCannon == false {                
                 _, _ = databaseConnection.Query("UPDATE BoatState SET NumberOfCannons = 3 WHERE IpAddress = \""+ipAddresses[1]+"\";")
         }
-
 	RoundEndedCheckForTorpedo()
-	// RESET THE HAS CANNON FIRED VALUE FOR BOTH PLAYERS
-	//_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 0 WHERE IpAddress = \""+ipAddresses[0]+"\";") //reset
-	//_, _ = databaseConnection.Query("UPDATE BoatState SET TorpedoDamage = 0 WHERE IpAddress = \""+ipAddresses[1]+"\";") //reset
         //Send the boatState to each player, reset FinishedMiniGame
 	_, _ = databaseConnection.Query("UPDATE BoatState SET FinishedMiniGame = 0 WHERE IpAddress = \""+ipAddresses[0]+"\" OR IpAddress = \""+ipAddresses[1]+"\";")
 
