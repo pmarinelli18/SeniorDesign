@@ -20,6 +20,12 @@ p1CannonMotor = CannonMotor(37)
 p1DotMatrix = DotMatrix(0)
 # p2DotMatrix = DotMatrix(??)
 
+p1TorpedoLEDPin = ??
+p2TorpedoLEDPin = ??
+
+GPIO.setup(p1TorpedoLEDPin, GPIO.OUT)
+GPIO.setup(p2TorpedoLEDPin, GPIO.OUT)
+
 
 
 
@@ -75,11 +81,17 @@ while 1:
 		p1DotMatrix.displayUserName(dataToParse["player1"])
 		# p2DotMatrix.displayUserName(dataToParse["player2"])
 
+
+	GPIO.output(p1TorpedoLEDPin, 0)
+	GPIO.output(p2TorpedoLEDPin, 0)
+
 	if (dataToParse["id"] == "incomingTorpedo"):
 		if (dataToParse["headingTowards"] == "p1"):
 			print("Torpedo is coming towards player 1")
+			GPIO.output(p1TorpedoLEDPin, 1)
 		else:
-			print("Torpedo is coming towards player 2")			
+			print("Torpedo is coming towards player 2")
+			GPIO.output(p2TorpedoLEDPin, 1)			
 
 s.close()
 
