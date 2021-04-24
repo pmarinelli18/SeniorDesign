@@ -1,0 +1,7 @@
+
+Steps to set up DB server 
+
+Install mySQL server		instructions and download here
+Install mySQL workbench		https://dev.mysql.com/downloads/workbench/
+Initialize database 		Run Init_Database.sql in the workbench
+In terminal, run:		go get github.com/go-sql-driver/mysql
